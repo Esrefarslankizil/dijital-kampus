@@ -1,0 +1,17 @@
+name: Dijital Kampüs CI/CD
+
+on:
+  push:
+    branches: [ "development", "main" ]
+  pull_request:
+    branches: [ "development", "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu Çek
+        uses: actions/checkout@v3
+        
+      - name: Test Mesajı
+        run: echo "GitHub Actions terminal uzerinden basariyla aktif edildi!"
