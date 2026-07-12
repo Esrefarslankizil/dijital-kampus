@@ -1,0 +1,6 @@
+@DijitalKampus.API_HostAddress = http://localhost:5181
+
+GET {{DijitalKampus.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
