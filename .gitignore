@@ -1,0 +1,34 @@
+# ==============================
+# NODE.JS / REACT (Frontend)
+# ==============================
+node_modules/
+dist/
+build/
+.env
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==============================
+# .NET CORE (Backend)
+# ==============================
+[Bb]in/
+[Oo]bj/
+appsettings.Development.json
+appsettings.Secret.json
+*.user
+*.suo
+*.userprefs
+
+# SQLite Veritabanı (Opsiyonel - Eğer veritabanının GitHub'a gitmesini istemiyorsanız)
+# *.db
+# *.db-journal
+
+# ==============================
+# IDE VE İŞLETİM SİSTEMİ (Ortak)
+# ==============================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
