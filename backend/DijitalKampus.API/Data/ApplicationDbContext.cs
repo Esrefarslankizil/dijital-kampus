@@ -1,16 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using DijitalKampus.API.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace DijitalKampus.API.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
 
     // DbSet'ler
-    public DbSet<User> Users => Set<User>();
-    public DbSet<UserToken> UserTokens => Set<UserToken>();
+    public DbSet<UserToken> AppUserTokens => Set<UserToken>();
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<AlumniProfile> AlumniProfiles => Set<AlumniProfile>();

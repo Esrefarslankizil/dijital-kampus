@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using DijitalKampus.API.Data;
+using Microsoft.AspNetCore.Identity;
+using DijitalKampus.API.Models;
 
 namespace DijitalKampus.API.Controllers;
 
@@ -8,37 +8,38 @@ namespace DijitalKampus.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
-    public AuthController(ApplicationDbContext context)
+    // Artık DbContext'i elle çağırmıyoruz, Microsoft'un hazır Yöneticilerini çağırıyoruz 
+    public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
     {
-        _context = context;
+        _userManager = userManager; // Kulalnıcı işlemlerini yönetir. Kullanıcı oluşturma silme 
+        _signInManager = signInManager; // Oturum Açma işlemlerini Yönetir. 
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        // NOT: Gerçek bir projede şifre hash'lenerek kontrol edilmeli ve gerçek bir JWT token üretilmelidir.
-        // Bu sadece test amaçlı basit bir login servisidir.
-        
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        // 1. Kullanıcıyı e-posta üzerinden bul
+        var user = await _userManager.FindByEmailAsync(request.Email);
         
         if (user == null)
-        {
             return Unauthorized(new { message = "Kullanıcı bulunamadı." });
-        }
 
         if (user.DeletedAt != null)
-        {
             return Unauthorized(new { message = "Hesabınız pasife alınmış." });
-        }
 
         if (!user.IsApproved)
-        {
             return Unauthorized(new { message = "Hesabınız henüz onaylanmamış." });
-        }
 
-        // Başarılı giriş
+        // 2. Şifreyi doğrula (Eski sistemde şifre kontrolü bile yoktu, artık var!)
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+        
+        if (!result.Succeeded)
+            return Unauthorized(new { message = "Hatalı şifre girdiniz." });
+
+        // Başarılı giriş (Frontend ekibinin kodları bozulmasın diye eski formatta cevap dönüyoruz)
         return Ok(new 
         { 
             token = "dummy-jwt-token-" + user.Id, 

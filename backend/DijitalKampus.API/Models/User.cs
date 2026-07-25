@@ -1,17 +1,12 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace DijitalKampus.API.Models
-{
-    public class User
+{    
+    public class User : IdentityUser<int> // <int> user ID nin guid yerine 1 2 3 diye artması için kullanılır. 
     {
-        [Key]
-        public int Id { get; set; }
-
-        [Required, EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        public string? PasswordHash { get; set; }
+        
 
         [Required]
         public string Role { get; set; } = string.Empty; // Admin, Student, Alumni, Employer
@@ -20,7 +15,7 @@ namespace DijitalKampus.API.Models
         public DateTime? DeletedAt { get; set; }
         public bool IsApproved { get; set; } = true;
 
-        // ---- Navigation Properties ----
+        // ---- Navigation Properties ----  // User tablosu ve diğer rol tabloları arası join işlemi için köptrü 
         public StudentProfile? StudentProfile { get; set; }
         public AlumniProfile? AlumniProfile { get; set; }
         public EmployerProfile? EmployerProfile { get; set; }
