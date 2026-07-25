@@ -4,6 +4,7 @@ using DijitalKampus.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DijitalKampus.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260725214658_AddTrendTable")]
+    partial class AddTrendTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,9 +168,6 @@ namespace DijitalKampus.API.Migrations
 
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("ImagePath")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Location")
@@ -186,11 +186,7 @@ namespace DijitalKampus.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventDate");
-
                     b.HasIndex("OrganizerId");
-
-                    b.HasIndex("DeletedAt", "EventType", "EventDate");
 
                     b.ToTable("Events");
                 });
@@ -240,76 +236,6 @@ namespace DijitalKampus.API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Fotograflar");
-                });
-
-            modelBuilder.Entity("DijitalKampus.API.Models.Group", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("CreatorId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatorId");
-
-                    b.HasIndex("DeletedAt", "Category");
-
-                    b.ToTable("Groups");
-                });
-
-            modelBuilder.Entity("DijitalKampus.API.Models.GroupMember", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GroupMembers");
                 });
 
             modelBuilder.Entity("DijitalKampus.API.Models.Notification", b =>
@@ -363,8 +289,6 @@ namespace DijitalKampus.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("DeletedAt", "CreatedAt");
 
                     b.ToTable("Posts");
                 });
@@ -852,36 +776,6 @@ namespace DijitalKampus.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DijitalKampus.API.Models.Group", b =>
-                {
-                    b.HasOne("DijitalKampus.API.Models.User", "Creator")
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Creator");
-                });
-
-            modelBuilder.Entity("DijitalKampus.API.Models.GroupMember", b =>
-                {
-                    b.HasOne("DijitalKampus.API.Models.Group", "Group")
-                        .WithMany("Members")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DijitalKampus.API.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("DijitalKampus.API.Models.Notification", b =>
                 {
                     b.HasOne("DijitalKampus.API.Models.User", "User")
@@ -1074,11 +968,6 @@ namespace DijitalKampus.API.Migrations
             modelBuilder.Entity("DijitalKampus.API.Models.Event", b =>
                 {
                     b.Navigation("Attendances");
-                });
-
-            modelBuilder.Entity("DijitalKampus.API.Models.Group", b =>
-                {
-                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("DijitalKampus.API.Models.Post", b =>

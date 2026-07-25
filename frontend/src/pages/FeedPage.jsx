@@ -84,14 +84,13 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
     }
 
     const handleAddHashtag = (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const tag = hashtagInput.trim().replace(/^#/, '');
-            if (tag && !hashtags.includes(tag)) {
-                setHashtags([...hashtags, tag]);
-            }
-            setHashtagInput('');
-        }
+        const raw = e.target.value;
+        // Virgülle ayrılmış etiketleri parse et ve TEKİLLEŞTİR
+        const tags = [...new Set(
+            raw.split(',').map(t => t.trim().replace(/^#/, '').toLowerCase()).filter(t => t.length > 0)
+        )];
+        setHashtags(tags);
+        setHashtagInput(raw);
     }
 
     const removeHashtag = (tagToRemove) => {
@@ -128,15 +127,19 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
 
                     {/* Hashtag Ekleme Inputu */}
                     {showHashtagInput && (
-                        <input
-                            type="text"
-                            value={hashtagInput}
-                            onChange={e => setHashtagInput(e.target.value)}
-                            onKeyDown={handleAddHashtag}
-                            placeholder="Hashtag yazıp Enter'a basın..."
-                            style={{ ...styles.postTextarea, width: '100%', marginTop: '10px', padding: '10px 14px', fontSize: '13px' }}
-                            autoFocus
-                        />
+                        <div style={{ marginTop: '10px' }}>
+                            <input
+                                type="text"
+                                value={hashtagInput}
+                                onChange={handleAddHashtag}
+                                placeholder="örn: VizeHaftası, Teknoloji, Yazılım"
+                                style={{ ...styles.postTextarea, width: '100%', padding: '10px 14px', fontSize: '13px', boxSizing: 'border-box' }}
+                                autoFocus
+                            />
+                            <p style={{ margin: '4px 0 0 2px', fontSize: '11px', color: '#aaa', fontWeight: 500 }}>
+                                💡 Birden fazla etiket için araya virgül koyun. # işareti otomatik eklenir.
+                            </p>
+                        </div>
                     )}
 
                     {selectedImage && (
@@ -150,14 +153,11 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
             {error && <p style={{ color: '#e74c3c', fontSize: '12px', margin: '4px 0 0', fontWeight: 600 }}>{error}</p>}
             {success && <p style={{ color: '#27ae60', fontSize: '12px', margin: '4px 0 0', fontWeight: 600 }}>{success}</p>}
             <div style={{ ...styles.postActions, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', backgroundColor: 'rgba(0,111,121,0.03)', padding: '10px 16px', borderRadius: '12px', marginTop: '12px' }}>
-                <input type="file" accept="image/*,video/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
-                <button style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: 'rgba(231,76,60,0.1)', color: '#e74c3c' }}>
-                    <i className="feather-video" style={{ marginRight: '6px' }}></i><span className="d-none d-sm-inline">Canlı Video</span>
-                </button>
+                <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
                 <button onClick={() => fileInputRef.current?.click()} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: 'rgba(39,174,96,0.1)', color: '#27ae60' }}>
                     <i className="feather-image" style={{ marginRight: '6px' }}></i><span className="d-none d-sm-inline">Fotoğraf</span>
                 </button>
-                <button onClick={() => setShowHashtagInput(!showHashtagInput)} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: 'rgba(52,152,219,0.1)', color: '#3498db' }}>
+                <button onClick={() => setShowHashtagInput(!showHashtagInput)} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: showHashtagInput ? 'rgba(52,152,219,0.2)' : 'rgba(52,152,219,0.1)', color: '#3498db' }}>
                     <i className="feather-hash" style={{ marginRight: '6px' }}></i><span className="d-none d-sm-inline">Etiket Ekle</span>
                 </button>
                 <button
@@ -221,6 +221,7 @@ export default function FeedPage() {
     const [followStates, setFollowStates] = useState({});
     const [feedError, setFeedError] = useState('');
     const [postSuccess, setPostSuccess] = useState('');
+    const [trendRefreshKey, setTrendRefreshKey] = useState(0); // Her gonderide artar
     
     // Profil istatistikleri state'i (Başlangıçta 0)
     const [stats, setStats] = useState({ followers: 0, following: 0, posts: 0 });
@@ -289,8 +290,15 @@ export default function FeedPage() {
         setFeedError('');
         setPostSuccess('');
         try {
-            // Backend API POST Çağrısı (GERÇEK)
-            const newPost = await postService.createPost(currentUserId, text || " "); // Empty text if only image
+            // Etiketleri tekilleştirip içeriğe ekle (#selam seklinde)
+            const uniqueHashtags = [...new Set(hashtags.map(t => t.toLowerCase()))];
+            const hashtagString = uniqueHashtags.length > 0
+                ? '\n' + uniqueHashtags.map(t => '#' + t).join(' ')
+                : '';
+            const fullContent = (text + hashtagString).trim();
+            if (!fullContent) return;
+
+            const newPost = await postService.createPost(currentUserId, fullContent);
             
             setPostList([{
                 id: newPost.id,
@@ -309,8 +317,9 @@ export default function FeedPage() {
             // Gönderi sayısını artır
             setStats(prev => ({ ...prev, posts: prev.posts + 1 }));
             
-            setPostSuccess('Gönderi başarıyla paylaşıldı!');
+            setPostSuccess('Gonderi basariyla paylasildi!');
             setTimeout(() => setPostSuccess(''), 3000);
+            setTrendRefreshKey(prev => prev + 1); // Kampus Gundemini yenile
         } catch (err) {
             setFeedError('Paylaşım yapılamadı. Lütfen tekrar deneyin.');
         } finally {
@@ -396,7 +405,7 @@ export default function FeedPage() {
                     ))
                 )}
             </main>
-            <RightSidebar followStates={followStates} onFollow={handleFollow} />
+            <RightSidebar followStates={followStates} onFollow={handleFollow} trendRefreshKey={trendRefreshKey} />
         </div>
     );
 }

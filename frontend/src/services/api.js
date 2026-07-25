@@ -1,7 +1,7 @@
 // src/services/api.js
 const API_BASE_URL = 'http://localhost:5181/api';
 
-// ─── Yardımcı: Token'lı istek ───
+// Yardimci: Tokenli istek
 const authFetch = (url, options = {}) => {
     const token = localStorage.getItem('token');
     return fetch(url, {
@@ -14,23 +14,23 @@ const authFetch = (url, options = {}) => {
     });
 };
 
-// ─── Auth ───
+// Auth
 export const authService = {
     login: async (email, password) => {
-        const response = await authFetch(`${API_BASE_URL}/auth/login`, {
+        const response = await authFetch(API_BASE_URL + '/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password }),
         });
-        if (!response.ok) throw new Error('Giriş başarısız.');
+        if (!response.ok) throw new Error('Giris basarisiz.');
         return await response.json();
     },
 
     register: async (email, password, role = 'Student') => {
-        const response = await authFetch(`${API_BASE_URL}/auth/register`, {
+        const response = await authFetch(API_BASE_URL + '/auth/register', {
             method: 'POST',
             body: JSON.stringify({ email, password, role }),
         });
-        if (!response.ok) throw new Error('Kayıt başarısız.');
+        if (!response.ok) throw new Error('Kayit basarisiz.');
         return await response.json();
     },
 
@@ -45,121 +45,240 @@ export const authService = {
     },
 };
 
-// ─── Posts ───
+// Posts
 export const postService = {
-    // Feed'deki tüm gönderileri getir
     getPosts: async () => {
-        const response = await authFetch(`${API_BASE_URL}/posts`);
-        if (!response.ok) throw new Error('Gönderiler yüklenemedi.');
+        const response = await authFetch(API_BASE_URL + '/posts');
+        if (!response.ok) throw new Error('Gonderiler yuklenemedi.');
         return await response.json();
     },
 
-    // Yeni gönderi oluştur
     createPost: async (userId, content) => {
-        const response = await authFetch(`${API_BASE_URL}/posts`, {
+        const response = await authFetch(API_BASE_URL + '/posts', {
             method: 'POST',
-            body: JSON.stringify({ userId, content }),
+            body: JSON.stringify({ userId: userId, content: content }),
         });
-        if (!response.ok) throw new Error('Gönderi paylaşılamadı.');
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || 'Gonderi paylasilamadi.');
+        }
         return await response.json();
     },
 
-    // Gönderi sil
     deletePost: async (postId) => {
-        const response = await authFetch(`${API_BASE_URL}/posts/${postId}`, {
+        const response = await authFetch(API_BASE_URL + '/posts/' + postId, {
             method: 'DELETE',
         });
-        if (!response.ok) throw new Error('Gönderi silinemedi.');
+        if (!response.ok) throw new Error('Gonderi silinemedi.');
         return await response.json();
     },
 };
 
-// ─── Follow ───
+// Follow
 export const followService = {
-    // Kullanıcıyı takip et
     follow: async (followerId, targetId) => {
-        const response = await authFetch(`${API_BASE_URL}/users/${targetId}/follow`, {
+        const response = await authFetch(API_BASE_URL + '/users/' + targetId + '/follow', {
             method: 'POST',
             body: JSON.stringify({ followerId }),
         });
         if (response.status === 409) return { following: true, alreadyFollowing: true };
-        if (!response.ok) throw new Error('Takip işlemi başarısız.');
+        if (!response.ok) throw new Error('Takip islemi basarisiz.');
         return await response.json();
     },
 
-    // Takibi bırak
     unfollow: async (followerId, targetId) => {
-        const response = await authFetch(`${API_BASE_URL}/users/${targetId}/follow`, {
+        const response = await authFetch(API_BASE_URL + '/users/' + targetId + '/follow', {
             method: 'DELETE',
             body: JSON.stringify({ followerId }),
         });
-        if (!response.ok) throw new Error('Takip bırakma başarısız.');
+        if (!response.ok) throw new Error('Takip birakma basarisiz.');
         return await response.json();
     },
 
-    // Kullanıcı istatistikleri
     getUserStats: async (userId) => {
-        const response = await authFetch(`${API_BASE_URL}/users/${userId}/stats`);
-        if (!response.ok) throw new Error('İstatistikler yüklenemedi.');
+        const response = await authFetch(API_BASE_URL + '/users/' + userId + '/stats');
+        if (!response.ok) throw new Error('Istatistikler yuklenemedi.');
         return await response.json();
     },
 };
 
-// ─── Story ───
+// Story
 export const storyService = {
-    // Aktif hikayeleri getir
     getStories: async () => {
-        const response = await authFetch(`${API_BASE_URL}/story/active`);
-        if (!response.ok) throw new Error('Hikayeler yüklenemedi.');
+        const response = await authFetch(API_BASE_URL + '/story/active');
+        if (!response.ok) throw new Error('Hikayeler yuklenemedi.');
         return await response.json();
     },
 
-    // Yeni hikaye yükle (FormData kullanarak)
     uploadStory: async (userId, file) => {
         const formData = new FormData();
         formData.append('userId', userId);
         formData.append('file', file);
-        
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/story/upload`, {
+        const response = await fetch(API_BASE_URL + '/story/upload', {
             method: 'POST',
             body: formData,
             headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                // Content-Type tarayıcı tarafından otomatik eklenecek (boundary ile)
             }
         });
-        if (!response.ok) throw new Error('Hikaye yüklenemedi.');
+        if (!response.ok) throw new Error('Hikaye yuklenemedi.');
         return await response.json();
     }
 };
 
-// ─── Admin ───
+// Admin
 export const adminService = {
     getStats: async () => {
-        const response = await authFetch(`${API_BASE_URL}/admin/stats`);
-        if (!response.ok) throw new Error('İstatistikler yüklenemedi.');
+        const response = await authFetch(API_BASE_URL + '/admin/stats');
+        if (!response.ok) throw new Error('Istatistikler yuklenemedi.');
         return await response.json();
     },
 
     getUsers: async () => {
-        const response = await authFetch(`${API_BASE_URL}/admin/users`);
-        if (!response.ok) throw new Error('Kullanıcılar yüklenemedi.');
+        const response = await authFetch(API_BASE_URL + '/admin/users');
+        if (!response.ok) throw new Error('Kullanicilar yuklenemedi.');
         return await response.json();
     },
 
     toggleUserStatus: async (userId, action) => {
-        const response = await authFetch(`${API_BASE_URL}/admin/users/${userId}/toggle-status`, {
+        const response = await authFetch(API_BASE_URL + '/admin/users/' + userId + '/toggle-status', {
             method: 'POST',
             body: JSON.stringify({ action }),
         });
-        if (!response.ok) throw new Error('Kullanıcı durumu güncellenemedi.');
+        if (!response.ok) throw new Error('Kullanici durumu guncellenemedi.');
         return await response.json();
     },
 
     getAuditLogs: async () => {
-        const response = await authFetch(`${API_BASE_URL}/admin/audit-logs`);
-        if (!response.ok) throw new Error('Loglar yüklenemedi.');
+        const response = await authFetch(API_BASE_URL + '/admin/audit-logs');
+        if (!response.ok) throw new Error('Loglar yuklenemedi.');
+        return await response.json();
+    }
+};
+
+// Trends
+export const trendService = {
+    getTrends: async () => {
+        const response = await authFetch(API_BASE_URL + '/trends');
+        if (!response.ok) throw new Error('Gundem yuklenemedi.');
+        return await response.json();
+    }
+};
+// Events
+export const eventService = {
+    getEvents: async (category, search, userId) => {
+        let url = API_BASE_URL + '/events';
+        const params = [];
+        if (category && category !== 'all') params.push('category=' + encodeURIComponent(category));
+        if (search) params.push('search=' + encodeURIComponent(search));
+        if (userId) params.push('userId=' + userId);
+        if (params.length > 0) url += '?' + params.join('&');
+        const response = await authFetch(url);
+        if (!response.ok) throw new Error('Etkinlikler yuklenemedi.');
+        return await response.json();
+    },
+
+    createEvent: async (data, imageFile) => {
+        const formData = new FormData();
+        formData.append('organizerId', data.organizerId);
+        formData.append('title', data.title);
+        if (data.description) formData.append('description', data.description);
+        formData.append('eventDate', data.eventDate);
+        if (data.endDate) formData.append('endDate', data.endDate);
+        formData.append('location', data.location);
+        if (data.eventType) formData.append('eventType', data.eventType);
+        if (data.maxParticipants) formData.append('maxParticipants', data.maxParticipants);
+        if (imageFile) formData.append('image', imageFile);
+
+        const token = localStorage.getItem('token');
+        const response = await fetch(API_BASE_URL + '/events', {
+            method: 'POST',
+            body: formData,
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!response.ok) throw new Error('Etkinlik olusturulamadi.');
+        return await response.json();
+    },
+
+    attend: async (eventId, userId) => {
+        const response = await authFetch(API_BASE_URL + '/events/' + eventId + '/attend', {
+            method: 'POST',
+            body: JSON.stringify({ userId }),
+        });
+        if (response.status === 409) return { alreadyAttending: true };
+        if (!response.ok) throw new Error('Katilim saglanamadi.');
+        return await response.json();
+    },
+
+    leave: async (eventId, userId) => {
+        const response = await authFetch(API_BASE_URL + '/events/' + eventId + '/attend', {
+            method: 'DELETE',
+            body: JSON.stringify({ userId }),
+        });
+        if (!response.ok) throw new Error('Etkinlikten ayrilamadi.');
+        return await response.json();
+    },
+
+    deleteEvent: async (eventId) => {
+        const response = await authFetch(API_BASE_URL + '/events/' + eventId, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Etkinlik silinemedi.');
+        return await response.json();
+    }
+};
+// Groups
+export const groupService = {
+    getGroups: async (category, search) => {
+        let url = API_BASE_URL + '/groups';
+        const params = [];
+        if (category && category !== 'all') params.push('category=' + encodeURIComponent(category));
+        if (search) params.push('search=' + encodeURIComponent(search));
+        if (params.length > 0) url += '?' + params.join('&');
+        const response = await authFetch(url);
+        if (!response.ok) throw new Error('Gruplar yuklenemedi.');
+        return await response.json();
+    },
+
+    getMyGroups: async (userId) => {
+        const response = await authFetch(API_BASE_URL + '/groups/my?userId=' + userId);
+        if (!response.ok) throw new Error('Gruplarim yuklenemedi.');
+        return await response.json();
+    },
+
+    createGroup: async (data) => {
+        const response = await authFetch(API_BASE_URL + '/groups', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error('Grup olusturulamadi.');
+        return await response.json();
+    },
+
+    joinGroup: async (groupId, userId) => {
+        const response = await authFetch(API_BASE_URL + '/groups/' + groupId + '/join', {
+            method: 'POST',
+            body: JSON.stringify({ userId }),
+        });
+        if (!response.ok) throw new Error('Gruba katilamadi.');
+        return await response.json();
+    },
+
+    leaveGroup: async (groupId, userId) => {
+        const response = await authFetch(API_BASE_URL + '/groups/' + groupId + '/leave', {
+            method: 'DELETE',
+            body: JSON.stringify({ userId }),
+        });
+        if (!response.ok) throw new Error('Gruptan ayrilamadi.');
+        return await response.json();
+    },
+
+    deleteGroup: async (groupId) => {
+        const response = await authFetch(API_BASE_URL + '/groups/' + groupId, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Grup silinemedi.');
         return await response.json();
     }
 };

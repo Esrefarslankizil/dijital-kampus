@@ -4,6 +4,7 @@ using DijitalKampus.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DijitalKampus.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260725223114_AddGroupTables")]
+    partial class AddGroupTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,7 +168,7 @@ namespace DijitalKampus.API.Migrations
 
                     b.Property<string>("EventType")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("longtext");
@@ -186,11 +189,7 @@ namespace DijitalKampus.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventDate");
-
                     b.HasIndex("OrganizerId");
-
-                    b.HasIndex("DeletedAt", "EventType", "EventDate");
 
                     b.ToTable("Events");
                 });
@@ -252,7 +251,7 @@ namespace DijitalKampus.API.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -276,8 +275,6 @@ namespace DijitalKampus.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatorId");
-
-                    b.HasIndex("DeletedAt", "Category");
 
                     b.ToTable("Groups");
                 });
@@ -363,8 +360,6 @@ namespace DijitalKampus.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("DeletedAt", "CreatedAt");
 
                     b.ToTable("Posts");
                 });

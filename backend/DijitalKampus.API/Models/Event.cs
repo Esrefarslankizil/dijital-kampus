@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -29,6 +29,7 @@ public class Event
 
     public int? MaxParticipants { get; set; }
 
+    public string? ImagePath { get; set; }  // Yuklenen gorsel yolu
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DeletedAt { get; set; }
 

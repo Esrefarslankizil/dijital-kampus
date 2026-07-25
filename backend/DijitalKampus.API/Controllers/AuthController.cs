@@ -47,9 +47,41 @@ public class AuthController : ControllerBase
             email = user.Email 
         });
     }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        // 1. Yeni bir kullanıcı profili hazırlıyoruz
+        var newUser = new User
+        {
+            UserName = request.Email, // Identity arka planda UserName kullanmayı sever, biz e-postayı atıyoruz.
+            Email = request.Email,
+            Role = "Student", // Varsayılan olarak herkes Öğrenci kayıt olsun
+            CreatedAt = DateTime.UtcNow,
+            IsApproved = true
+        };
+
+        // 2. UserManager (Güvenlik Şefimiz) bu kullanıcıyı veritabanına ekliyor ve şifresini otomatik kriptoluyor!
+        var result = await _userManager.CreateAsync(newUser, request.Password);
+
+        if (!result.Succeeded)
+        {
+            // Eğer bir hata varsa (şifre çok kısaysa, aynı e-posta varsa vs.) hataları listeleyip yolluyoruz
+            var errors = result.Errors.Select(e => e.Description);
+            return BadRequest(new { message = "Kayıt işlemi başarısız.", errors });
+        }
+
+        return Ok(new { message = "Kayıt başarıyla oluşturuldu! Lütfen giriş yapın." });
+    }
 }
 
 public class LoginRequest
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public class RegisterRequest
 {
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;

@@ -29,7 +29,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<Fotograf> Fotograflar => Set<Fotograf>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
-
+    public DbSet<Trend> Trends => Set<Trend>();
+    public DbSet<Group> Groups => Set<Group>();
+    public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -39,6 +41,23 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
         {
             entity.HasIndex(u => u.Email).IsUnique();
             entity.HasQueryFilter(u => u.DeletedAt == null);
+        });
+
+        // Performans Icin Indeksler
+        modelBuilder.Entity<Event>(entity =>
+        {
+            entity.HasIndex(e => new { e.DeletedAt, e.EventType, e.EventDate });
+            entity.HasIndex(e => e.EventDate);
+        });
+
+        modelBuilder.Entity<Group>(entity =>
+        {
+            entity.HasIndex(g => new { g.DeletedAt, g.Category });
+        });
+
+        modelBuilder.Entity<Post>(entity =>
+        {
+            entity.HasIndex(p => new { p.DeletedAt, p.CreatedAt });
         });
 
         // Bileşik anahtar (composite key) ve silme davranışları

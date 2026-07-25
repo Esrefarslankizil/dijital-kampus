@@ -46,6 +46,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
+app.UseStaticFiles(); // EKLENDI: wwwroot klasorundeki yuklenen resimleri sunmak icin
+
+
 // ============================================================
 //  API ENDPOINTS (Boş - Daha sonra eklenecek)
 // ============================================================
