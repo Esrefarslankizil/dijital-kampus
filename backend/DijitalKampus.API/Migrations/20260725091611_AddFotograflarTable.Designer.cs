@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DijitalKampus.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260722122425_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260725091611_AddFotograflarTable")]
+    partial class AddFotograflarTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -166,6 +166,32 @@ namespace DijitalKampus.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("EventAttendances");
+                });
+
+            modelBuilder.Entity("DijitalKampus.API.Models.Fotograf", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Fotograflar");
                 });
 
             modelBuilder.Entity("DijitalKampus.API.Models.Notification", b =>

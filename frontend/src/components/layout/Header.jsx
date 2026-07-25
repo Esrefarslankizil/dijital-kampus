@@ -1,7 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MtuLogo from '../MtuLogo';
 
 function Header({ onOpenLogin, onOpenRegister }) {
+    const [keyword, setKeyword] = useState("");
+    const [results, setResults] = useState([]);
+
+    const handleSearch = async (e) => {
+        const val = e.target.value;
+        setKeyword(val);
+        if (val.length > 2) {
+            try {
+                const response = await fetch(`http://localhost:5181/api/Follow/search?keyword=${val}`);
+                const data = await response.json();
+                setResults(data);
+            } catch (error) {
+                console.error("Arama hatası:", error);
+            }
+        } else {
+            setResults([]);
+        }
+    };
   return (
     <div className="nav-header bg-white shadow-xs border-0" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, height: '60px' }}>
         <div className="nav-top w-100 d-flex align-items-center" style={{ height: '60px', padding: '0 20px' }}>
@@ -16,6 +34,8 @@ function Header({ onOpenLogin, onOpenRegister }) {
                     <input 
                         type="text" 
                         placeholder="Ara..." 
+                        value={keyword}
+                        onChange={handleSearch}
                         style={{ 
                             width: '100%', 
                             border: '1.5px solid #e8eaf0', 
@@ -26,6 +46,29 @@ function Header({ onOpenLogin, onOpenRegister }) {
                             backgroundColor: '#f8f9fa',
                         }} 
                     />
+                    {results.length > 0 && (
+                        <ul style={{
+                            position: 'absolute',
+                            top: '45px',
+                            left: 0,
+                            background: '#fff',
+                            width: '100%',
+                            listStyle: 'none',
+                            border: '1px solid #ddd',
+                            borderRadius: '12px',
+                            padding: '10px',
+                            margin: 0,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            zIndex: 1000
+                        }}>
+                            {results.map(user => (
+                                <li key={user.id} style={{ padding: '10px 8px', borderBottom: '1px solid #f0f2f5', display: 'flex', flexDirection: 'column' }}>
+                                    <strong style={{ fontSize: '13px', color: '#1a1a2e' }}>{user.firstName} {user.lastName}</strong> 
+                                    <span style={{ fontSize: '11px', color: '#888' }}>{user.email}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </div>
 

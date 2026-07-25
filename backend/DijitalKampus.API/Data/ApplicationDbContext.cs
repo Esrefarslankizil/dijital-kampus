@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using DijitalKampus.API.Models;
 
 namespace DijitalKampus.API.Data;
@@ -25,7 +25,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventAttendance> EventAttendances => Set<EventAttendance>();
     public DbSet<UserFollow> UserFollows => Set<UserFollow>();
+    public DbSet<Fotograf> Fotograflar => Set<Fotograf>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

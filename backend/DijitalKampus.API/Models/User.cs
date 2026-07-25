@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace DijitalKampus.API.Models
@@ -18,6 +18,7 @@ namespace DijitalKampus.API.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? DeletedAt { get; set; }
+        public bool IsApproved { get; set; } = true;
 
         // ---- Navigation Properties ----
         public StudentProfile? StudentProfile { get; set; }

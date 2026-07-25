@@ -15,10 +15,12 @@ builder.Services.AddCors(options =>
 });
 
 // ----- Database -----
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=dijitalkampus.db"));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // ----- Swagger -----
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -43,5 +45,6 @@ app.UseCors("AllowFrontend");
 //  API ENDPOINTS (Boş - Daha sonra eklenecek)
 // ============================================================
 
+app.MapControllers();
 
 app.Run();

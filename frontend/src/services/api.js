@@ -104,3 +104,62 @@ export const followService = {
         return await response.json();
     },
 };
+
+// ─── Story ───
+export const storyService = {
+    // Aktif hikayeleri getir
+    getStories: async () => {
+        const response = await authFetch(`${API_BASE_URL}/story/active`);
+        if (!response.ok) throw new Error('Hikayeler yüklenemedi.');
+        return await response.json();
+    },
+
+    // Yeni hikaye yükle (FormData kullanarak)
+    uploadStory: async (userId, file) => {
+        const formData = new FormData();
+        formData.append('userId', userId);
+        formData.append('file', file);
+        
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/story/upload`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                // Content-Type tarayıcı tarafından otomatik eklenecek (boundary ile)
+            }
+        });
+        if (!response.ok) throw new Error('Hikaye yüklenemedi.');
+        return await response.json();
+    }
+};
+
+// ─── Admin ───
+export const adminService = {
+    getStats: async () => {
+        const response = await authFetch(`${API_BASE_URL}/admin/stats`);
+        if (!response.ok) throw new Error('İstatistikler yüklenemedi.');
+        return await response.json();
+    },
+
+    getUsers: async () => {
+        const response = await authFetch(`${API_BASE_URL}/admin/users`);
+        if (!response.ok) throw new Error('Kullanıcılar yüklenemedi.');
+        return await response.json();
+    },
+
+    toggleUserStatus: async (userId, action) => {
+        const response = await authFetch(`${API_BASE_URL}/admin/users/${userId}/toggle-status`, {
+            method: 'POST',
+            body: JSON.stringify({ action }),
+        });
+        if (!response.ok) throw new Error('Kullanıcı durumu güncellenemedi.');
+        return await response.json();
+    },
+
+    getAuditLogs: async () => {
+        const response = await authFetch(`${API_BASE_URL}/admin/audit-logs`);
+        if (!response.ok) throw new Error('Loglar yüklenemedi.');
+        return await response.json();
+    }
+};

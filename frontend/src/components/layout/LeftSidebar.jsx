@@ -37,6 +37,11 @@ const LeftSidebar = ({ userEmail, userRole, stats, activeMenu = 'feed' }) => {
                         {activeMenu === item.id && <span style={styles.navDot}></span>}
                     </Link>
                 ))}
+                {userRole === 'Admin' && (
+                    <Link to="/admin" style={{...styles.navItem, marginTop: '8px', backgroundColor: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c'}}>
+                        <i className="feather-shield" style={{...styles.navIcon, color: '#e74c3c'}}></i><span style={{fontWeight: 700}}>Yönetici Paneli</span>
+                    </Link>
+                )}
                 <div style={{ borderTop: '1px solid #f0f2f5', margin: '8px 0' }}></div>
                 <Link to="/login" style={styles.navItem} onClick={() => localStorage.clear()}>
                     <i className="feather-log-out" style={{ ...styles.navIcon, color: '#e74c3c' }}></i>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/layout/Header';
 import LoginPage from './pages/LoginPage';
+import AdminPage from './pages/AdminPage';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import FeedPage from './pages/FeedPage';
@@ -46,6 +47,7 @@ function AppContent() {
           <Route path="/badges" element={<BadgesPage />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </div>
 

@@ -1,24 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { postService, followService } from '../services/api';
+import { postService, followService, storyService } from '../services/api';
 import LeftSidebar from '../components/layout/LeftSidebar';
 import RightSidebar from '../components/layout/RightSidebar';
 
 // --- Alt Bileşenler (React Components) ---
 
-const StoryCarousel = ({ stories }) => (
+const StoryCarousel = ({ stories, onStoryUpload }) => {
+    const fileInputRef = React.useRef(null);
+    const [selectedStory, setSelectedStory] = useState(null);
+
+    return (
+    <>
+    {selectedStory && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedStory(null)}>
+            <div style={{ position: 'relative', maxWidth: '90%', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '-10px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
+                <img src={`http://localhost:5181${selectedStory.bg}`} alt={selectedStory.name} style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '16px', objectFit: 'contain', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '30px' }}>
+                    <img src={selectedStory.avatar} alt={selectedStory.name} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginRight: '12px' }} />
+                    <p style={{ color: '#fff', margin: 0, fontWeight: 600, fontSize: '15px' }}>{selectedStory.name}</p>
+                </div>
+            </div>
+        </div>
+    )}
     <div style={{ ...styles.card, padding: '16px', background: 'linear-gradient(to right, #ffffff, #e6f4f5)' }}>
         <h4 style={{ margin: '0 0 16px 4px', color: '#006F79', fontSize: '15px', fontWeight: 700 }}>
             <i className="feather-film" style={{ marginRight: '8px' }}></i>Kampüs Hikayeleri
         </h4>
         <div style={styles.storiesRow}>
-            <div style={styles.storyAddCard}>
+            <div style={styles.storyAddCard} onClick={() => fileInputRef.current?.click()}>
                 <div style={styles.storyAddIcon}>
                     <i className="feather-plus" style={{ color: '#fff', fontSize: '20px' }}></i>
                 </div>
                 <p style={styles.storyLabel}>Hikaye Ekle</p>
             </div>
+            <input 
+                type="file" 
+                accept="image/*" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        onStoryUpload(e.target.files[0]);
+                    }
+                }} 
+            />
             {stories.map(s => (
-                <div key={s.id} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(${s.bg})` : 'none', backgroundColor: s.bg ? '#004F56' : '#008f7a' }}>
+                <div key={s.id} onClick={() => setSelectedStory(s)} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(http://localhost:5181${s.bg})` : 'none', backgroundColor: s.bg ? '#004F56' : '#008f7a' }}>
                     <div style={styles.storyGradient}>
                         <img src={s.avatar} alt={s.name} style={{ ...styles.storyAvatar, border: '2px solid #006F79' }} />
                         <p style={styles.storyLabel}>{s.name}</p>
@@ -27,7 +55,9 @@ const StoryCarousel = ({ stories }) => (
             ))}
         </div>
     </div>
-);
+    </>
+    );
+};
 
 const CreatePostBox = ({ onShare, isPosting, error, success }) => {
     const [text, setText] = useState('');
@@ -186,6 +216,7 @@ const PostCard = ({ post, onLike, onDelete, isOwnPost }) => (
 // --- Ana Sayfa Bileşeni ---
 export default function FeedPage() {
     const [postList, setPostList] = useState([]);
+    const [storyList, setStoryList] = useState([]);
     const [isPosting, setIsPosting] = useState(false);
     const [followStates, setFollowStates] = useState({});
     const [feedError, setFeedError] = useState('');
@@ -231,7 +262,26 @@ export default function FeedPage() {
                 console.warn('API erişilemedi.');
             }
         };
+
+        const loadStories = async () => {
+            try {
+                const apiStories = await storyService.getStories();
+                if (apiStories && apiStories.length > 0) {
+                    const mapped = apiStories.map(s => ({
+                        id: s.id,
+                        name: s.userName,
+                        avatar: '/images/user-7.png',
+                        bg: s.mediaPath
+                    }));
+                    setStoryList(mapped);
+                }
+            } catch (e) {
+                console.warn('Hikayeler yüklenemedi.');
+            }
+        };
+
         loadPosts();
+        loadStories();
     }, []);
 
     const handleShare = async (text, imageUrl, hashtags) => {
@@ -303,16 +353,29 @@ export default function FeedPage() {
         setPostList(prev => prev.map(p => p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
     };
 
-    const stories = [
-        { id: 1, name: 'Ahmet K.', avatar: '/images/user-11.png', bg: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&q=80' },
-        { id: 2, name: 'Zeynep Y.', avatar: '/images/user-12.png', bg: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=300&q=80' },
-    ];
+    const handleStoryUpload = async (file) => {
+        try {
+            const result = await storyService.uploadStory(currentUserId, file);
+            if (result && result.story) {
+                const newStory = {
+                    id: result.story.id,
+                    name: userEmail,
+                    avatar: '/images/user-7.png',
+                    bg: result.story.mediaPath
+                };
+                setStoryList([newStory, ...storyList]);
+            }
+        } catch (e) {
+            console.error('Hikaye yüklenirken hata', e);
+            alert("Hikaye yüklenemedi.");
+        }
+    };
 
     return (
         <div style={styles.page}>
             <LeftSidebar userEmail={userEmail} userRole={userRole} stats={stats} />
             <main style={styles.feedArea}>
-                <StoryCarousel stories={stories} />
+                <StoryCarousel stories={storyList} onStoryUpload={handleStoryUpload} />
                 <CreatePostBox onShare={handleShare} isPosting={isPosting} error={feedError} success={postSuccess} />
                 
                 {feedError && <p style={{ color: '#e74c3c', textAlign: 'center', margin: '20px 0' }}>{feedError}</p>}
