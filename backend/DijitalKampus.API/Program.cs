@@ -2,6 +2,7 @@ using DijitalKampus.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using DijitalKampus.API.Models;
+using DijitalKampus.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +11,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -28,14 +30,37 @@ builder.Services.AddIdentity<User, IdentityRole<int>>()
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// ----- Apply Migrations at startup -----
+// ----- Apply Migrations and Seed Data at startup -----
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var testEmail = "test@mtu.edu.tr";
+    if (await userManager.FindByEmailAsync(testEmail) == null)
+    {
+        var testUser = new User { UserName = testEmail, Email = testEmail, Role = "Ogrenci", IsApproved = true, CreatedAt = DateTime.UtcNow };
+        await userManager.CreateAsync(testUser, "Sifre123!");
+    }
+
+    var test2Email = "test2@mtu.edu.tr";
+    if (await userManager.FindByEmailAsync(test2Email) == null)
+    {
+        var test2User = new User { UserName = test2Email, Email = test2Email, Role = "Ogrenci", IsApproved = true, CreatedAt = DateTime.UtcNow };
+        await userManager.CreateAsync(test2User, "Sifre123!");
+    }
+
+    var test3Email = "test3@mtu.edu.tr";
+    if (await userManager.FindByEmailAsync(test3Email) == null)
+    {
+        var test3User = new User { UserName = test3Email, Email = test3Email, Role = "Ogrenci", IsApproved = true, CreatedAt = DateTime.UtcNow };
+        await userManager.CreateAsync(test3User, "Sifre123!");
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -54,5 +79,6 @@ app.UseStaticFiles(); // EKLENDI: wwwroot klasorundeki yuklenen resimleri sunmak
 // ============================================================
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

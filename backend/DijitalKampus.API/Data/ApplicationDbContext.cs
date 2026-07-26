@@ -32,6 +32,10 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<Trend> Trends => Set<Trend>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
+    public DbSet<Message> Messages => Set<Message>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -92,5 +96,11 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
                   .HasForeignKey(uf => uf.FollowedId)
                   .OnDelete(DeleteBehavior.NoAction);
         });
+
+        // Mesajlaşma İndeksleri
+        modelBuilder.Entity<Message>().HasIndex(m => new { m.ConversationId, m.SentAt });
+        modelBuilder.Entity<ConversationParticipant>().HasIndex(cp => new { cp.UserId, cp.ConversationId }).IsUnique();
+        modelBuilder.Entity<Message>().HasQueryFilter(m => m.DeletedAt == null);
+        modelBuilder.Entity<Conversation>().HasQueryFilter(c => c.DeletedAt == null);
     }
 }

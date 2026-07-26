@@ -11,6 +11,8 @@ import OnboardingPage from './pages/OnboardingPage';
 import BadgesPage from './pages/BadgesPage';
 import GroupsPage from './pages/GroupsPage';
 import EventsPage from './pages/EventsPage';
+import MessagesPage from './pages/MessagesPage';
+import ProfilePage from './pages/ProfilePage';
 
 function AppContent() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
@@ -47,6 +49,8 @@ function AppContent() {
           <Route path="/badges" element={<BadgesPage />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </div>

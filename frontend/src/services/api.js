@@ -77,9 +77,8 @@ export const postService = {
 // Follow
 export const followService = {
     follow: async (followerId, targetId) => {
-        const response = await authFetch(API_BASE_URL + '/users/' + targetId + '/follow', {
+        const response = await authFetch(API_BASE_URL + `/Follow/${followerId}/follow/${targetId}`, {
             method: 'POST',
-            body: JSON.stringify({ followerId }),
         });
         if (response.status === 409) return { following: true, alreadyFollowing: true };
         if (!response.ok) throw new Error('Takip islemi basarisiz.');
@@ -87,9 +86,8 @@ export const followService = {
     },
 
     unfollow: async (followerId, targetId) => {
-        const response = await authFetch(API_BASE_URL + '/users/' + targetId + '/follow', {
+        const response = await authFetch(API_BASE_URL + `/Follow/${followerId}/unfollow/${targetId}`, {
             method: 'DELETE',
-            body: JSON.stringify({ followerId }),
         });
         if (!response.ok) throw new Error('Takip birakma basarisiz.');
         return await response.json();
@@ -279,6 +277,83 @@ export const groupService = {
             method: 'DELETE',
         });
         if (!response.ok) throw new Error('Grup silinemedi.');
+        return await response.json();
+    }
+};
+
+export const chatService = {
+    getConversations: async () => {
+        const response = await authFetch(API_BASE_URL + '/messages/conversations');
+        if (!response.ok) throw new Error('Sohbetler yuklenemedi.');
+        return await response.json();
+    },
+    getHistory: async (conversationId, page = 1) => {
+        const response = await authFetch(API_BASE_URL + '/messages/' + conversationId + '/history?page=' + page);
+        if (!response.ok) throw new Error('Mesaj gecmisi yuklenemedi.');
+        return await response.json();
+    },
+    startConversation: async (targetUserId) => {
+        const response = await authFetch(API_BASE_URL + '/messages/start/' + targetUserId, {
+            method: 'POST'
+        });
+        if (!response.ok) throw new Error('Sohbet baslatilamadi.');
+        return await response.json();
+    }
+};
+
+export const profileService = {
+    getProfile: async (id) => {
+        const response = await authFetch(API_BASE_URL + '/profile/' + id);
+        if (!response.ok) throw new Error('Profil bilgileri alinamadi.');
+        return await response.json();
+    },
+    uploadAvatar: async (userId, file) => {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await fetch(API_BASE_URL + '/profile/' + userId + '/avatar', {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: formData,
+        });
+        if (!response.ok) throw new Error('Profil resmi yüklenemedi.');
+        return await response.json();
+    },
+    removeAvatar: async (userId) => {
+        const response = await authFetch(API_BASE_URL + '/profile/' + userId + '/avatar', {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Profil resmi kaldırılamadı.');
+        return await response.json();
+    },
+    updateProfile: async (userId, data) => {
+        const response = await authFetch(API_BASE_URL + '/profile/' + userId, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || 'Profil güncellenemedi.');
+        }
+        return await response.json();
+    },
+    uploadCover: async (userId, file) => {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await fetch(API_BASE_URL + '/profile/' + userId + '/cover', {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: formData,
+        });
+        if (!response.ok) throw new Error('Kapak fotoğrafı yüklenemedi.');
+        return await response.json();
+    },
+    removeCover: async (userId) => {
+        const response = await authFetch(API_BASE_URL + '/profile/' + userId + '/cover', {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Kapak fotoğrafı kaldırılamadı.');
         return await response.json();
     }
 };

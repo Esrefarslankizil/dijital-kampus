@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { postService, followService, storyService } from '../services/api';
 import LeftSidebar from '../components/layout/LeftSidebar';
 import RightSidebar from '../components/layout/RightSidebar';
+import PostCard from '../components/posts/PostCard';
 
 // --- Alt Bileşenler (React Components) ---
 
@@ -12,7 +13,7 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
     return (
     <>
     {selectedStory && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedStory(null)}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={() => setSelectedStory(null)}>
             <div style={{ position: 'relative', maxWidth: '90%', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                 <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '-10px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
                 <img src={`http://localhost:5181${selectedStory.bg}`} alt={selectedStory.name} style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '16px', objectFit: 'contain', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }} />
@@ -171,47 +172,6 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
         </div>
     );
 };
-
-const PostCard = ({ post, onLike, onDelete, isOwnPost }) => (
-    <div style={{ ...styles.card, borderTop: '4px solid #006F79' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
-            <img src={post.avatar} alt={post.user} style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', marginRight: '12px', border: '2px solid #006F79', padding: '2px' }} />
-            <div style={{ flex: 1 }}>
-                <p style={{ margin: 0, fontWeight: 800, color: '#006F79', fontSize: '15px' }}>{post.user}</p>
-                <p style={{ margin: 0, fontSize: '11px', color: '#888', fontWeight: 600 }}>{post.role} · {post.time}</p>
-            </div>
-            {isOwnPost ? (
-                <button onClick={() => onDelete(post.id)} style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '18px', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(231,76,60,0.1)' }}>
-                    <i className="feather-trash-2"></i>
-                </button>
-            ) : (
-                <button style={{ background: 'none', border: 'none', color: '#bbb', cursor: 'pointer', fontSize: '18px' }}><i className="feather-more-horizontal"></i></button>
-            )}
-        </div>
-        <p style={{ color: '#333', fontSize: '14px', lineHeight: '1.7', marginBottom: '16px' }}>{post.content}</p>
-        {post.image && <img src={post.image} alt="post" style={{ width: '100%', height: 'auto', borderRadius: '12px', maxHeight: '500px', objectFit: 'contain', backgroundColor: 'rgba(0,0,0,0.02)', marginBottom: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />}
-        
-        {post.hashtags && post.hashtags.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-                {post.hashtags.map(tag => (
-                    <span key={tag} style={{ color: '#006F79', fontSize: '13px', fontWeight: 700, cursor: 'pointer', backgroundColor: 'rgba(0,111,121,0.05)', padding: '4px 10px', borderRadius: '12px' }}>
-                        #{tag}
-                    </span>
-                ))}
-            </div>
-        )}
-
-        <div style={{ borderTop: '1px solid #f0f2f5', paddingTop: '12px', display: 'flex', gap: '12px' }}>
-            <button onClick={() => onLike(post.id)} style={{ ...styles.actionBtn, backgroundColor: post.liked ? 'rgba(0,111,121,0.1)' : 'rgba(0,111,121,0.03)', color: post.liked ? '#006F79' : '#555', fontWeight: post.liked ? 700 : 600 }}>
-                <i className="feather-thumbs-up" style={{ marginRight: '6px', color: post.liked ? '#006F79' : '#888' }}></i>
-                {post.likes} Beğeni
-            </button>
-            <button style={{ ...styles.actionBtn, backgroundColor: 'rgba(0,0,0,0.02)' }}><i className="feather-message-circle" style={{ marginRight: '6px', color: '#888' }}></i>{post.comments} Yorum</button>
-            <button style={{ ...styles.actionBtn, backgroundColor: 'rgba(0,0,0,0.02)', marginLeft: 'auto' }}><i className="feather-share-2" style={{ marginRight: '6px', color: '#888' }}></i>Paylaş</button>
-        </div>
-    </div>
-);
-
 
 // --- Ana Sayfa Bileşeni ---
 export default function FeedPage() {
