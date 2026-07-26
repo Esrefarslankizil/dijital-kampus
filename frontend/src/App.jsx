@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast'; // 1. TOAST KÜTÜPHANESİ EKLENDİ
+
 import Header from './components/layout/Header';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
@@ -11,6 +13,7 @@ import OnboardingPage from './pages/OnboardingPage';
 import BadgesPage from './pages/BadgesPage';
 import GroupsPage from './pages/GroupsPage';
 import EventsPage from './pages/EventsPage';
+import ProfilePage from './pages/ProfilePage'; 
 
 function AppContent() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
@@ -31,23 +34,15 @@ function AppContent() {
         )}
         
         <Routes>
-          {/* Ana Sayfa giriş ekranına yönlendirir */}
           <Route path="/" element={<Navigate to="/login" />} />
-          
-          {/* Giriş ve Kayıt Ekranı */}
           <Route path="/login" element={<LoginPage />} />
-          
-          {/* İlk Kayıt Sihirbazı */}
           <Route path="/onboarding" element={<OnboardingPage />} />
-          
-          {/* Dijital Kampüs Ana Akış */}
           <Route path="/feed" element={<FeedPage />} />
-
-          {/* Yeni Sayfalar */}
           <Route path="/badges" element={<BadgesPage />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </div>
 
@@ -58,6 +53,19 @@ function AppContent() {
       <RegisterModal 
         isOpen={isRegisterModalOpen} 
         onClose={() => setRegisterModalOpen(false)} 
+      />
+
+      {/* 2. SİHİRLİ BİLDİRİM BİLEŞENİ (TOASTER) EKLENDİ */}
+      <Toaster 
+        position="bottom-right" 
+        toastOptions={{
+          style: {
+            background: '#333',
+            color: '#fff',
+            borderRadius: '10px',
+            fontSize: '14px',
+          },
+        }} 
       />
     </>
   );

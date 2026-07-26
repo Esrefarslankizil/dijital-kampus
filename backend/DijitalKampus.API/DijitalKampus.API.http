@@ -1,6 +1,43 @@
-@DijitalKampus.API_HostAddress = http://localhost:5181
+@host = http://localhost:5181
 
-GET {{DijitalKampus.API_HostAddress}}/weatherforecast/
+### 1. TEST: Yeni Bir Öğrenci Profili Oluştur (CREATE)
+# Eşref Identity ile User tablosunu doldurduğunda UserId otomatik oluşur. 
+# Test için UserId'si 1 olan bir öğrenci profili ekliyoruz.
+POST {{host}}/api/profiles
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "biography": "Bilgisayar Mühendisliği 4. sınıf öğrencisi. Full-stack geliştirici adayı.",
+  "targetSector": "Yazılım Geliştirme",
+  "targetPosition": "Backend Developer",
+  "departmentId": 1
+}
+
+###
+
+### 2. TEST: Eklenen Profili Listele (READ)
+# Bakalım az önce eklediğimiz profil veritabanından gelecek mi?
+GET {{host}}/api/profiles
 Accept: application/json
 
 ###
+
+### 3. TEST: Bu Profile Yeni Bir Proje Ekle (CREATE - Portfolio)
+# StudentProfileId alanına yukarıda eklediğimiz profilin ID'sini (1) veriyoruz.
+POST {{host}}/api/portfolio/projects
+Content-Type: application/json
+
+{
+  "studentProfileId": 1,
+  "title": "Dijital Kampüs Portfolyo Modülü",
+  "link": "https://github.com/seyrah/dijital-kampus",
+  "description": "ASP.NET Core ve React ile geliştirilmiş dinamik öğrenci portfolyo sistemi."
+}
+
+###
+
+### 4. TEST: Profil ve Projeyi Birlikte Getir (READ - Include Kontrolü)
+# Yazdığımız .Include() yapısı sayesinde proje profilin içinde listelenmeli!
+GET {{host}}/api/profiles/1
+Accept: application/json

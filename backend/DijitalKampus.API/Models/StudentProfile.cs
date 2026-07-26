@@ -20,9 +20,13 @@ namespace DijitalKampus.API.Models
         public string? Biography { get; set; } 
 
         [ForeignKey(nameof(UserId))]
-        public User User { get; set; } = null!;
+        public User? User { get; set; }
 
         [ForeignKey(nameof(DepartmentId))]
-        public Department Department { get; set; } = null!;
+        public Department? Department { get; set; }
+
+        // Öğrencinin sahip olduğu Projeler ve Sertifikalar listesi
+        public ICollection<Project> Projects { get; set; } = new List<Project>();
+        public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
     }
 }
