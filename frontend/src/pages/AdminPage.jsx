@@ -11,9 +11,17 @@ export default function AdminPage() {
     const [logs, setLogs] = useState([]);
     
     // New states for moderation
+    // New states for moderation
     const [posts, setPosts] = useState([]);
     const [pendingEvents, setPendingEvents] = useState([]);
     const [pendingGroups, setPendingGroups] = useState([]);
+    
+    // Users filtering and pagination
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('Tümü');
+    const [statusFilter, setStatusFilter] = useState('Tümü');
+    const [currentPage, setCurrentPage] = useState(1);
+    const usersPerPage = 10;
     
     const navigate = useNavigate();
 
@@ -160,24 +168,86 @@ export default function AdminPage() {
         );
     };
 
-    const renderUsers = () => (
-        <div style={styles.card}>
-            <h3 style={styles.sectionTitle}>Sistem Kullanıcıları</h3>
-            <table style={styles.table}>
-                <thead>
-                    <tr>
-                        <th style={styles.th}>ID</th>
-                        <th style={styles.th}>E-posta</th>
+    const renderUsers = () => {
+        // Filtreleme
+        let filteredUsers = users.filter(u => {
+            const matchSearch = u.email.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchRole = roleFilter === 'Tümü' || u.role === roleFilter;
+            
+            let userStatus = 'Pasif';
+            if (u.isActive && u.isApproved) userStatus = 'Aktif';
+            else if (!u.isApproved) userStatus = 'Onay Bekliyor';
+
+            const matchStatus = statusFilter === 'Tümü' || userStatus === statusFilter;
+            
+            return matchSearch && matchRole && matchStatus;
+        });
+
+        // Sayfalama
+        const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+        const indexOfLastUser = currentPage * usersPerPage;
+        const indexOfFirstUser = indexOfLastUser - usersPerPage;
+        const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+        const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+        return (
+            <div style={styles.card}>
+                <h3 style={styles.sectionTitle}>Sistem Kullanıcıları</h3>
+                
+                {/* Filtreleme Çubuğu */}
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+                        <i className="feather-search" style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }}></i>
+                        <input 
+                            type="text" 
+                            placeholder="E-posta ile ara..." 
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                    <select 
+                        value={roleFilter} 
+                        onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+                        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', minWidth: '140px' }}
+                    >
+                        <option value="Tümü">Tüm Roller</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Öğrenci">Öğrenci</option>
+                        <option value="Mezun">Mezun</option>
+                        <option value="Akademisyen">Akademisyen</option>
+                    </select>
+                    <select 
+                        value={statusFilter} 
+                        onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', minWidth: '150px' }}
+                    >
+                        <option value="Tümü">Tüm Durumlar</option>
+                        <option value="Aktif">Aktif</option>
+                        <option value="Pasif">Pasif</option>
+                        <option value="Onay Bekliyor">Onay Bekliyor</option>
+                    </select>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={styles.table}>
+                        <thead>
+                            <tr>
+                                <th style={styles.th}>ID</th>
+                                <th style={styles.th}>E-posta</th>
                         <th style={styles.th}>Rol</th>
                         <th style={styles.th}>Kayıt Tarihi</th>
                         <th style={styles.th}>Durum</th>
                         <th style={styles.th}>Aksiyon</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.map(u => (
-                        <tr key={u.id} style={styles.tr}>
-                            <td style={styles.td}>{u.id}</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentUsers.length === 0 ? (
+                            <tr><td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>Sonuç bulunamadı.</td></tr>
+                        ) : currentUsers.map(u => (
+                            <tr key={u.id} style={styles.tr}>
+                                <td style={styles.td}>{u.id}</td>
                             <td style={styles.td}>{u.email}</td>
                             <td style={styles.td}>
                                 <span style={{ ...styles.roleBadge, backgroundColor: u.role === 'Admin' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: u.role === 'Admin' ? '#c4b5fd' : '#93c5fd' }}>
@@ -206,11 +276,42 @@ export default function AdminPage() {
                                 )}
                             </td>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+                        ))}
+                    </tbody>
+                </table>
+                </div>
+
+                {/* Sayfalama Butonları */}
+                {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '24px' }}>
+                        <button 
+                            disabled={currentPage === 1}
+                            onClick={() => paginate(currentPage - 1)}
+                            style={{ ...styles.pageBtn, opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                        >
+                            Önceki
+                        </button>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <button 
+                                key={i}
+                                onClick={() => paginate(i + 1)}
+                                style={{ ...styles.pageBtn, backgroundColor: currentPage === i + 1 ? '#3b82f6' : 'transparent', color: currentPage === i + 1 ? '#fff' : '#94a3b8', border: currentPage === i + 1 ? '1px solid #3b82f6' : '1px solid #334155' }}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button 
+                            disabled={currentPage === totalPages}
+                            onClick={() => paginate(currentPage + 1)}
+                            style={{ ...styles.pageBtn, opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                        >
+                            Sonraki
+                        </button>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     const renderContent = () => (
         <div style={styles.card}>
@@ -324,7 +425,7 @@ export default function AdminPage() {
             {/* Admin Sidebar */}
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarHeader}>
-                    <MtuLogo height={40} />
+                    <MtuLogo height={40} lightText={true} />
                     <h2 style={{ color: '#fff', fontSize: '18px', margin: '16px 0 0', fontWeight: '700' }}>Admin Portal</h2>
                     <p style={{ color: '#94a3b8', fontSize: '12px', margin: 0 }}>{userEmail}</p>
                 </div>
@@ -414,9 +515,10 @@ const styles = {
     tr: { transition: 'background-color 0.2s' },
     
     // Badges & Buttons
-    statusBadge: { padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' },
-    roleBadge: { padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' },
+    statusBadge: { padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-block' },
+    roleBadge: { padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-block' },
     actionBtn: { border: 'none', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', transition: 'opacity 0.2s' },
+    pageBtn: { padding: '6px 12px', backgroundColor: 'transparent', border: '1px solid #334155', borderRadius: '6px', color: '#94a3b8', cursor: 'pointer', fontSize: '13px', fontWeight: '600', transition: 'all 0.2s' },
     
     // Content Moderation
     contentItem: { padding: '20px', backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px' },

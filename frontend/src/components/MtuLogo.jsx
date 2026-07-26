@@ -1,6 +1,6 @@
 import React from 'react';
 
-function MtuLogo({ height = 48, className = "", showText = true }) {
+function MtuLogo({ height = 48, className = "", showText = true, lightText = false }) {
     return (
         <div className={`d-flex align-items-center ${className}`} style={{ height: `${height}px` }}>
             <img 
@@ -21,7 +21,7 @@ function MtuLogo({ height = 48, className = "", showText = true }) {
                         display: 'block',
                         fontWeight: 800, 
                         fontSize: '13px', 
-                        color: '#1a1a2e', 
+                        color: lightText ? '#ffffff' : '#1a1a2e', 
                         letterSpacing: '0.3px',
                     }}>
                         MALATYA TURGUT ÖZAL
@@ -30,7 +30,7 @@ function MtuLogo({ height = 48, className = "", showText = true }) {
                         display: 'block',
                         fontWeight: 700, 
                         fontSize: '10px', 
-                        color: 'var(--mtu-primary)', 
+                        color: lightText ? '#e2e8f0' : 'var(--mtu-primary)', 
                         letterSpacing: '2.5px',
                     }}>
                         ÜNİVERSİTESİ
