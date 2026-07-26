@@ -110,10 +110,13 @@ export const storyService = {
         return await response.json();
     },
 
-    uploadStory: async (userId, file) => {
+    uploadStory: async (userId, file, textContent = '', backgroundColor = '#000000', textColor = '#ffffff') => {
         const formData = new FormData();
         formData.append('userId', userId);
-        formData.append('file', file);
+        if (file) formData.append('file', file);
+        if (textContent) formData.append('textContent', textContent);
+        if (backgroundColor) formData.append('backgroundColor', backgroundColor);
+        if (textColor) formData.append('textColor', textColor);
         const token = localStorage.getItem('token');
         const response = await fetch(API_BASE_URL + '/story/upload', {
             method: 'POST',
@@ -154,6 +157,49 @@ export const adminService = {
         const response = await authFetch(API_BASE_URL + '/admin/audit-logs');
         if (!response.ok) throw new Error('Loglar yuklenemedi.');
         return await response.json();
+    },
+
+    getPendingEvents: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/pending-events');
+        if (!response.ok) throw new Error('Etkinlikler yuklenemedi.');
+        return await response.json();
+    },
+
+    approveEvent: async (id) => {
+        const response = await authFetch(API_BASE_URL + '/admin/events/' + id + '/approve', { method: 'POST' });
+        if (!response.ok) throw new Error('Etkinlik onaylanamadi.');
+    },
+
+    deleteEvent: async (id) => {
+        const response = await authFetch(API_BASE_URL + '/admin/events/' + id, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Etkinlik silinemedi.');
+    },
+
+    getPendingGroups: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/pending-groups');
+        if (!response.ok) throw new Error('Gruplar yuklenemedi.');
+        return await response.json();
+    },
+
+    approveGroup: async (id) => {
+        const response = await authFetch(API_BASE_URL + '/admin/groups/' + id + '/approve', { method: 'POST' });
+        if (!response.ok) throw new Error('Grup onaylanamadi.');
+    },
+
+    deleteGroup: async (id) => {
+        const response = await authFetch(API_BASE_URL + '/admin/groups/' + id, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Grup silinemedi.');
+    },
+
+    getPosts: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/posts');
+        if (!response.ok) throw new Error('Gonderiler yuklenemedi.');
+        return await response.json();
+    },
+
+    deletePost: async (id) => {
+        const response = await authFetch(API_BASE_URL + '/admin/posts/' + id, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Gonderi silinemedi.');
     }
 };
 

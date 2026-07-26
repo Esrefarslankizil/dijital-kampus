@@ -32,6 +32,7 @@ public class Event
     public string? ImagePath { get; set; }  // Yuklenen gorsel yolu
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DeletedAt { get; set; }
+    public bool IsApproved { get; set; } = false;
 
     [ForeignKey(nameof(OrganizerId))]
     public User Organizer { get; set; } = null!;

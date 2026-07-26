@@ -25,6 +25,7 @@ public class Group
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? DeletedAt { get; set; }
+    public bool IsApproved { get; set; } = false;
 
     [ForeignKey(nameof(CreatorId))]
     public User Creator { get; set; } = null!;

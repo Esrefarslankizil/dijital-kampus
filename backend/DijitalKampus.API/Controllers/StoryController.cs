@@ -21,35 +21,43 @@ namespace DijitalKampus.API.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadStory([FromForm] int userId, [FromForm] IFormFile file)
+        public async Task<IActionResult> UploadStory([FromForm] int userId, [FromForm] IFormFile? file, [FromForm] string? textContent, [FromForm] string? backgroundColor, [FromForm] string? textColor)
         {
             try
             {
-                if (file == null || file.Length == 0)
+                if ((file == null || file.Length == 0) && string.IsNullOrWhiteSpace(textContent))
                 {
-                    return BadRequest("Lütfen geçerli bir dosya seçin."); 
+                    return BadRequest("Lütfen bir dosya seçin veya metin girin."); 
                 }
 
-                using var memoryStream = new System.IO.MemoryStream();
-                await file.CopyToAsync(memoryStream);
+                string? uploadedMediaUrl = null;
 
-                var fotograf = new Fotograf
+                if (file != null && file.Length > 0)
                 {
-                    FileName = file.FileName,
-                    ContentType = file.ContentType,
-                    Data = memoryStream.ToArray(),
-                    CreatedAt = DateTime.UtcNow
-                };
-                
-                _context.Fotograflar.Add(fotograf);
-                await _context.SaveChangesAsync();
+                    using var memoryStream = new System.IO.MemoryStream();
+                    await file.CopyToAsync(memoryStream);
 
-                string uploadedMediaUrl = $"/api/Story/image/{fotograf.Id}";
+                    var fotograf = new Fotograf
+                    {
+                        FileName = file.FileName,
+                        ContentType = file.ContentType,
+                        Data = memoryStream.ToArray(),
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    
+                    _context.Fotograflar.Add(fotograf);
+                    await _context.SaveChangesAsync();
+
+                    uploadedMediaUrl = $"/api/Story/image/{fotograf.Id}";
+                }
 
                 var newStory = new Story
                 {
                     UserId = userId,
                     MediaPath = uploadedMediaUrl,
+                    TextContent = textContent,
+                    BackgroundColor = backgroundColor ?? "#000000",
+                    TextColor = textColor ?? "#ffffff",
                     CreatedAt = DateTime.UtcNow,
                     ExpiresAt = DateTime.UtcNow.AddHours(24)
                 };
@@ -89,6 +97,9 @@ namespace DijitalKampus.API.Controllers
                         id = s.Id,
                         userId = s.UserId,
                         mediaPath = s.MediaPath,
+                        textContent = s.TextContent,
+                        backgroundColor = s.BackgroundColor,
+                        textColor = s.TextColor,
                         createdAt = s.CreatedAt,
                         userName = s.User != null ? s.User.Email : "Bilinmiyor"
                     })

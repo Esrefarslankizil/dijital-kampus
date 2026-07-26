@@ -8,14 +8,89 @@ import RightSidebar from '../components/layout/RightSidebar';
 const StoryCarousel = ({ stories, onStoryUpload }) => {
     const fileInputRef = React.useRef(null);
     const [selectedStory, setSelectedStory] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [storyText, setStoryText] = useState('');
+    const [storyBgColor, setStoryBgColor] = useState('#004F56');
+    const [storyTextColor, setStoryTextColor] = useState('#ffffff');
+    const [storyImage, setStoryImage] = useState(null);
+    const [storyImageFile, setStoryImageFile] = useState(null);
+    
+    const bgColors = ['#004F56', '#e74c3c', '#8e44ad', '#f39c12', '#2c3e50', '#27ae60', '#000000', '#ffffff'];
+    const textColors = ['#ffffff', '#000000', '#f1c40f', '#006F79', '#e74c3c'];
+
+    const handleShare = () => {
+        onStoryUpload(storyImageFile, storyText, storyBgColor, storyTextColor);
+        setShowCreateModal(false);
+        setStoryText('');
+        setStoryImage(null);
+        setStoryImageFile(null);
+        setStoryTextColor('#ffffff');
+    };
 
     return (
     <>
+    {showCreateModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, color: '#006F79' }}>Hikaye Oluştur</h3>
+                    <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>&times;</button>
+                </div>
+                
+                <div style={{ height: '300px', borderRadius: '12px', backgroundColor: storyImage ? 'transparent' : storyBgColor, backgroundImage: storyImage ? `url(${storyImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <textarea 
+                        value={storyText} 
+                        onChange={e => setStoryText(e.target.value)} 
+                        placeholder="Bir şeyler yaz..." 
+                        style={{ background: 'transparent', border: 'none', color: storyTextColor, fontSize: '24px', fontWeight: 'bold', textAlign: 'center', width: '100%', resize: 'none', outline: 'none', textShadow: storyTextColor === '#000000' ? 'none' : '0 2px 4px rgba(0,0,0,0.8)' }} 
+                        rows={4}
+                    />
+                </div>
+                
+                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Arka Plan:</span>
+                    {bgColors.map(c => (
+                        <div key={c} onClick={() => {setStoryBgColor(c); setStoryImage(null); setStoryImageFile(null);}} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyBgColor === c && !storyImage ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
+                    ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Yazı Rengi:</span>
+                    {textColors.map(c => (
+                        <div key={c} onClick={() => setStoryTextColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyTextColor === c ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
+                    ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            setStoryImageFile(e.target.files[0]);
+                            setStoryImage(URL.createObjectURL(e.target.files[0]));
+                        }
+                    }} />
+                    <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ccc', background: '#f9f9f9', cursor: 'pointer', fontWeight: 600, color: '#555' }}>
+                        <i className="feather-image"></i> Fotoğraf
+                    </button>
+                    <button onClick={handleShare} disabled={!storyText.trim() && !storyImage} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: (!storyText.trim() && !storyImage) ? '#ccc' : '#006F79', color: '#fff', cursor: (!storyText.trim() && !storyImage) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
+                        Paylaş
+                    </button>
+                </div>
+            </div>
+        </div>
+    )}
+
     {selectedStory && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedStory(null)}>
-            <div style={{ position: 'relative', maxWidth: '90%', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '-10px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
-                <img src={`http://localhost:5181${selectedStory.bg}`} alt={selectedStory.name} style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '16px', objectFit: 'contain', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }} />
+            <div style={{ position: 'relative', width: '100%', maxWidth: '450px', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '0px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
+                
+                <div style={{ position: 'relative', width: '100%', height: '80vh', borderRadius: '16px', backgroundColor: selectedStory.bgColor || '#000', backgroundImage: selectedStory.bg ? `url(http://localhost:5181${selectedStory.bg})` : 'none', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    {selectedStory.text && (
+                        <p style={{ color: selectedStory.textColor || '#fff', fontSize: '28px', fontWeight: 'bold', textAlign: 'center', textShadow: selectedStory.textColor === '#000000' ? 'none' : '0 2px 6px rgba(0,0,0,0.8)', margin: 0, wordBreak: 'break-word', zIndex: 2 }}>{selectedStory.text}</p>
+                    )}
+                    {selectedStory.bg && <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}></div>}
+                </div>
+
                 <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '30px' }}>
                     <img src={selectedStory.avatar} alt={selectedStory.name} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginRight: '12px' }} />
                     <p style={{ color: '#fff', margin: 0, fontWeight: 600, fontSize: '15px' }}>{selectedStory.name}</p>
@@ -28,25 +103,20 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
             <i className="feather-film" style={{ marginRight: '8px' }}></i>Kampüs Hikayeleri
         </h4>
         <div style={styles.storiesRow}>
-            <div style={styles.storyAddCard} onClick={() => fileInputRef.current?.click()}>
+            <div style={styles.storyAddCard} onClick={() => setShowCreateModal(true)}>
                 <div style={styles.storyAddIcon}>
                     <i className="feather-plus" style={{ color: '#fff', fontSize: '20px' }}></i>
                 </div>
                 <p style={styles.storyLabel}>Hikaye Ekle</p>
             </div>
-            <input 
-                type="file" 
-                accept="image/*" 
-                ref={fileInputRef} 
-                style={{ display: 'none' }} 
-                onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                        onStoryUpload(e.target.files[0]);
-                    }
-                }} 
-            />
+            
             {stories.map(s => (
-                <div key={s.id} onClick={() => setSelectedStory(s)} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(http://localhost:5181${s.bg})` : 'none', backgroundColor: s.bg ? '#004F56' : '#008f7a' }}>
+                <div key={s.id} onClick={() => setSelectedStory(s)} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(http://localhost:5181${s.bg})` : 'none', backgroundColor: s.bg ? 'transparent' : (s.bgColor || '#000') }}>
+                    {!s.bg && s.text && (
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+                            <p style={{ color: s.textColor || '#fff', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', margin: 0, wordBreak: 'break-word', opacity: 0.9 }}>{s.text.length > 40 ? s.text.substring(0, 40) + '...' : s.text}</p>
+                        </div>
+                    )}
                     <div style={styles.storyGradient}>
                         <img src={s.avatar} alt={s.name} style={{ ...styles.storyAvatar, border: '2px solid #006F79' }} />
                         <p style={styles.storyLabel}>{s.name}</p>
@@ -272,7 +342,10 @@ export default function FeedPage() {
                         id: s.id,
                         name: s.userName,
                         avatar: '/images/user-7.png',
-                        bg: s.mediaPath
+                        bg: s.mediaPath,
+                        text: s.textContent,
+                        bgColor: s.backgroundColor || '#000',
+                        textColor: s.textColor || '#fff'
                     }));
                     setStoryList(mapped);
                 }
@@ -362,15 +435,18 @@ export default function FeedPage() {
         setPostList(prev => prev.map(p => p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
     };
 
-    const handleStoryUpload = async (file) => {
+    const handleStoryUpload = async (file, text, bgColor, textColor) => {
         try {
-            const result = await storyService.uploadStory(currentUserId, file);
+            const result = await storyService.uploadStory(currentUserId, file, text, bgColor, textColor);
             if (result && result.story) {
                 const newStory = {
                     id: result.story.id,
                     name: userEmail,
                     avatar: '/images/user-7.png',
-                    bg: result.story.mediaPath
+                    bg: result.story.mediaPath,
+                    text: result.story.textContent,
+                    bgColor: result.story.backgroundColor,
+                    textColor: result.story.textColor
                 };
                 setStoryList([newStory, ...storyList]);
             }
