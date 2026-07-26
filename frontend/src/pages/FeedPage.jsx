@@ -18,6 +18,20 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
     const bgColors = ['#004F56', '#e74c3c', '#8e44ad', '#f39c12', '#2c3e50', '#27ae60', '#000000', '#ffffff'];
     const textColors = ['#ffffff', '#000000', '#f1c40f', '#006F79', '#e74c3c'];
 
+    const selectedIndex = stories.findIndex(s => s.id === selectedStory?.id);
+    const hasNext = selectedIndex !== -1 && selectedIndex < stories.length - 1;
+    const hasPrev = selectedIndex !== -1 && selectedIndex > 0;
+
+    const goToNext = (e) => {
+        e.stopPropagation();
+        if (hasNext) setSelectedStory(stories[selectedIndex + 1]);
+    };
+
+    const goToPrev = (e) => {
+        e.stopPropagation();
+        if (hasPrev) setSelectedStory(stories[selectedIndex - 1]);
+    };
+
     const handleShare = () => {
         onStoryUpload(storyImageFile, storyText, storyBgColor, storyTextColor);
         setShowCreateModal(false);
@@ -84,7 +98,19 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
             <div style={{ position: 'relative', width: '100%', maxWidth: '450px', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                 <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '0px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
                 
-                <div style={{ position: 'relative', width: '100%', height: '80vh', borderRadius: '16px', backgroundColor: selectedStory.bgColor || '#000', backgroundImage: selectedStory.bg ? `url(http://localhost:5181${selectedStory.bg})` : 'none', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                {hasPrev && (
+                    <i className="feather-chevron-left" style={{ position: 'absolute', left: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToPrev}></i>
+                )}
+                {hasNext && (
+                    <i className="feather-chevron-right" style={{ position: 'absolute', right: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToNext}></i>
+                )}
+
+                <div style={{ position: 'relative', width: '100%', height: '80vh', borderRadius: '16px', backgroundColor: selectedStory.bgColor || '#000', backgroundImage: selectedStory.bg ? `url(http://localhost:5181${selectedStory.bg})` : 'none', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
+                    
+                    {/* Left/Right click areas for swipe-like feel */}
+                    {hasPrev && <div onClick={goToPrev} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
+                    {hasNext && <div onClick={goToNext} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
+
                     {selectedStory.text && (
                         <p style={{ color: selectedStory.textColor || '#fff', fontSize: '28px', fontWeight: 'bold', textAlign: 'center', textShadow: selectedStory.textColor === '#000000' ? 'none' : '0 2px 6px rgba(0,0,0,0.8)', margin: 0, wordBreak: 'break-word', zIndex: 2 }}>{selectedStory.text}</p>
                     )}
@@ -102,7 +128,7 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
         <h4 style={{ margin: '0 0 16px 4px', color: '#006F79', fontSize: '15px', fontWeight: 700 }}>
             <i className="feather-film" style={{ marginRight: '8px' }}></i>Kampüs Hikayeleri
         </h4>
-        <div style={styles.storiesRow}>
+        <div style={styles.storiesRow} className="stories-row">
             <div style={styles.storyAddCard} onClick={() => setShowCreateModal(true)}>
                 <div style={styles.storyAddIcon}>
                     <i className="feather-plus" style={{ color: '#fff', fontSize: '20px' }}></i>
@@ -125,6 +151,11 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
             ))}
         </div>
     </div>
+    <style>{`
+        .stories-row::-webkit-scrollbar {
+            display: none;
+        }
+    `}</style>
     </>
     );
 };
@@ -508,7 +539,7 @@ const styles = {
     navItemActive: { backgroundColor: 'rgba(0,111,121,0.08)', color: '#006F79', fontWeight: 700 },
     navIcon: { width: '20px', marginRight: '12px', fontSize: '16px', color: '#999' },
     navDot: { width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#006F79', marginLeft: 'auto' },
-    storiesRow: { display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', WebkitOverflowScrolling: 'touch' },
+    storiesRow: { display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' },
     storyAddCard: { width: '100px', height: '160px', borderRadius: '12px', border: '2px dashed #006F79', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', backgroundColor: 'rgba(0,111,121,0.02)' },
     storyAddIcon: { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', boxShadow: '0 4px 10px rgba(0,111,121,0.3)' },
     storyCard: { width: '100px', height: '160px', borderRadius: '12px', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', overflow: 'hidden', flexShrink: 0, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
