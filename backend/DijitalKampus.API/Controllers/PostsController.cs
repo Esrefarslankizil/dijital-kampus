@@ -23,11 +23,8 @@ namespace DijitalKampus.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPosts()
         {
-            var posts = await _context.Posts
-                .Include(p => p.User)
-                .Include(p => p.PostLikes)
-                .Include(p => p.Comments)
-                .OrderByDescending(p => p.CreatedAt)
+        var posts = await _context.Posts
+            .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new
                 {
                     p.Id,
@@ -87,7 +84,7 @@ namespace DijitalKampus.API.Controllers
             if (post == null)
                 return NotFound(new { message = "Gönderi bulunamadı." });
 
-            _context.Posts.Remove(post);
+            post.DeletedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Gönderi başarıyla silindi." });

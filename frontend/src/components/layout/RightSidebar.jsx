@@ -1,7 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { trendService, eventService } from '../../services/api';
 import { Link } from 'react-router-dom';
 
-const RightSidebar = ({ followStates = {}, onFollow = () => {} }) => {
+const RightSidebar = ({ followStates = {}, onFollow = () => {}, trendRefreshKey = 0 }) => {
+    const [trends, setTrends] = useState([]);
+    const [loadingTrends, setLoadingTrends] = useState(true);
+
+    useEffect(() => {
+        const fetchTrends = async () => {
+            try {
+                const data = await trendService.getTrends();
+                setTrends(data);
+            } catch (error) {
+                console.error("Trendler yüklenirken hata:", error);
+            } finally {
+                setLoadingTrends(false);
+            }
+        };
+        fetchTrends();
+    }, [trendRefreshKey]);
+
+    const [upcomingEvents, setUpcomingEvents] = useState([]);
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const data = await eventService.getEvents();
+                const now = new Date();
+                const future = data
+                    .filter(e => new Date(e.eventDate) > now)
+                    .slice(0, 3);
+                setUpcomingEvents(future);
+            } catch { /* sessizce basarisiz ol */ }
+        };
+        fetchEvents();
+    }, [trendRefreshKey]);
     const events = [
         { month: 'EYL', day: '21', title: 'Akademik Yıl Açılışı', location: 'Ana Kampüs', color: '#D6A327', bg: 'rgba(214,163,39,0.1)' },
     ];
@@ -14,37 +46,44 @@ const RightSidebar = ({ followStates = {}, onFollow = () => {} }) => {
         <aside style={styles.rightSidebar}>
             <div style={styles.sideCard}>
                 <p style={styles.sideCardTitle}><i className="feather-trending-up" style={{ marginRight: '8px', color: '#006F79' }}></i>Kampüs Gündemi</p>
-                <div style={styles.trendingItem}>
-                    <p style={styles.trendingCategory}>Akademik · Gündem</p>
-                    <p style={styles.trendingTopic}>#VizeHaftası</p>
-                    <p style={styles.trendingCount}>1,245 Gönderi</p>
-                </div>
-                <div style={styles.trendingItem}>
-                    <p style={styles.trendingCategory}>Etkinlik · Gündem</p>
-                    <p style={styles.trendingTopic}>#BaharŞenliği2026</p>
-                    <p style={styles.trendingCount}>856 Gönderi</p>
-                </div>
-                <div style={styles.trendingItem}>
-                    <p style={styles.trendingCategory}>Spor · Gündem</p>
-                    <p style={styles.trendingTopic}>#MTUE-SporTurnuvası</p>
-                    <p style={styles.trendingCount}>432 Gönderi</p>
-                </div>
+                {loadingTrends ? (
+                    <p style={{ fontSize: '12px', color: '#888' }}>Yükleniyor...</p>
+                ) : trends.length > 0 ? (
+                    trends.map(trend => (
+                        <div key={trend.id} style={styles.trendingItem}>
+                            <p style={styles.trendingCategory}>{trend.category}</p>
+                            <p style={styles.trendingTopic}>{trend.topic}</p>
+                            <p style={styles.trendingCount}>{trend.postCount} Gönderi</p>
+                        </div>
+                    ))
+                ) : (
+                    <p style={{ fontSize: '12px', color: '#888' }}>Şu an gündem boş.</p>
+                )}
             </div>
 
             <div style={styles.sideCard}>
                 <p style={styles.sideCardTitle}><i className="feather-calendar" style={{ marginRight: '8px', color: '#006F79' }}></i>Yaklaşan Etkinlikler</p>
-                {events.map((ev, i) => (
-                    <div key={i} style={styles.eventItem}>
-                        <div style={{ ...styles.eventDate, backgroundColor: ev.bg, color: ev.color }}>
-                            <span style={{ fontSize: '9px', fontWeight: 700, display: 'block' }}>{ev.month}</span>
-                            <span style={{ fontSize: '20px', fontWeight: 800 }}>{ev.day}</span>
-                        </div>
-                        <div>
-                            <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1a1a2e' }}>{ev.title}</p>
-                            <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>{ev.location}</p>
-                        </div>
-                    </div>
-                ))}
+                {upcomingEvents.length === 0 ? (
+                    <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', padding: '8px 0' }}>Yaklaşan etkinlik yok.</p>
+                ) : (
+                    upcomingEvents.map(ev => {
+                        const d = new Date(ev.eventDate);
+                        const month = d.toLocaleString('tr-TR', { month: 'short' }).toUpperCase().slice(0, 3);
+                        const day = d.getDate();
+                        return (
+                            <div key={ev.id} style={styles.eventItem}>
+                                <div style={{ ...styles.eventDate, backgroundColor: 'rgba(214,163,39,0.1)', color: '#D6A327' }}>
+                                    <span style={{ fontSize: '9px', fontWeight: 700, display: 'block' }}>{month}</span>
+                                    <span style={{ fontSize: '20px', fontWeight: 800 }}>{day}</span>
+                                </div>
+                                <div>
+                                    <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: '#1a1a2e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '170px' }}>{ev.title}</p>
+                                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>{ev.location}</p>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
                 <Link to="/events" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', width: '100%', padding: '8px', backgroundColor: 'rgba(0,111,121,0.05)', color: '#006F79', borderRadius: '8px', fontWeight: 700, fontSize: '12px', marginTop: '4px' }}>Tümünü Gör</Link>
             </div>
             

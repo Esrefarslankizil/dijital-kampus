@@ -1,50 +1,150 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const LeftSidebar = ({ userEmail, userRole, stats, activeMenu = 'feed' }) => {
+    const getUserIdFromToken = () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return 0;
+            if (token.startsWith('dummy-jwt-token-')) {
+                return parseInt(token.replace('dummy-jwt-token-', '')) || 0;
+            }
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 0;
+        } catch { return 0; }
+    };
+    const currentUserId = getUserIdFromToken();
+
     const navItems = [
         { id: 'feed', icon: 'feather-home', label: 'Ana Akış', path: '/feed' },
         { id: 'badges', icon: 'feather-award', label: 'Rozetler', path: '/badges' },
         { id: 'events', icon: 'feather-calendar', label: 'Etkinlikler', path: '/events' },
         { id: 'groups', icon: 'feather-users', label: 'Gruplar', path: '/groups' },
+        { id: 'profile', icon: 'feather-user', label: 'Profilim', path: `/profile/${currentUserId || 1}` },
     ];
+
+    const [avatarUrl, setAvatarUrl] = useState(null);
+    const [displayName, setDisplayName] = useState(userEmail?.split('@')[0] || '?');
+    const [userStats, setUserStats] = useState({ followers: 0, following: 0, posts: 0 });
+
+    useEffect(() => {
+        if (!currentUserId) return;
+        const token = localStorage.getItem('token');
+        fetch(`http://localhost:5181/api/profile/${currentUserId}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!data) return;
+                if (data.avatarUrl) setAvatarUrl(`http://localhost:5181${data.avatarUrl}`);
+                if (data.displayName) setDisplayName(data.displayName);
+                else if (data.firstName) setDisplayName(`${data.firstName} ${data.lastName || ''}`.trim());
+                
+                setUserStats({
+                    followers: data.followersCount || 0,
+                    following: data.followingCount || 0,
+                    posts: data.posts?.length || 0
+                });
+            })
+            .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUserId]);
+
+    const initial = displayName.charAt(0).toUpperCase();
+    const activeFollowers = stats?.followers !== undefined ? stats.followers : userStats.followers;
+    const activeFollowing = stats?.following !== undefined ? stats.following : userStats.following;
+    const activePosts = stats?.posts !== undefined ? stats.posts : userStats.posts;
 
     return (
         <aside style={styles.leftSidebar}>
-            <div style={styles.profileCard}>
-                <div style={styles.profileBanner}></div>
-                <div style={styles.profileAvatarWrap}>
-                    <img src="/images/user-7.png" alt="profil" style={styles.profileAvatar} />
-                </div>
-                <div style={{ textAlign: 'center', padding: '8px 16px 16px' }}>
-                    <p style={styles.profileName}>{userEmail.split('@')[0]}</p>
-                    <span style={styles.profileRole}>{userRole}</span>
-                    <div style={styles.profileStats}>
-                        <div style={styles.stat}><strong style={{ color: '#006F79' }}>{stats?.followers || 0}</strong><br /><small>Takipçi</small></div>
-                        <div style={styles.statDivider}></div>
-                        <div style={styles.stat}><strong style={{ color: '#006F79' }}>{stats?.following || 0}</strong><br /><small>Takip</small></div>
-                        <div style={styles.statDivider}></div>
-                        <div style={styles.stat}><strong style={{ color: '#006F79' }}>{stats?.posts || 0}</strong><br /><small>Gönderi</small></div>
+            <style>{`
+                .nav-item-link {
+                    display: flex;
+                    align-items: center;
+                    padding: 10px 14px;
+                    border-radius: 12px;
+                    color: #555;
+                    text-decoration: none;
+                    font-size: 13.5px;
+                    font-weight: 600;
+                    transition: all 0.2s ease;
+                    margin-bottom: 2px;
+                }
+                .nav-item-link:hover {
+                    background-color: rgba(0, 111, 121, 0.16) !important;
+                    color: #006F79 !important;
+                    transform: translateX(3px);
+                }
+                .nav-item-link:hover .nav-icon {
+                    color: #006F79 !important;
+                }
+                .nav-item-link.active-item {
+                    background-color: #006F79 !important;
+                    color: #ffffff !important;
+                    font-weight: 700 !important;
+                    box-shadow: 0 4px 12px rgba(0, 111, 121, 0.22);
+                    transform: translateX(0);
+                }
+                .nav-item-link.active-item .nav-icon {
+                    color: #ffffff !important;
+                }
+                .nav-item-link.active-item .nav-dot {
+                    background-color: #ffffff !important;
+                }
+            `}</style>
+
+            <Link to={`/profile/${currentUserId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ ...styles.profileCard, transition: 'transform 0.2s', cursor: 'pointer' }}>
+                    <div style={styles.profileBanner}></div>
+                    <div style={styles.profileAvatarWrap}>
+                        {avatarUrl ? (
+                            <img src={avatarUrl} alt="profil" style={styles.profileAvatar} />
+                        ) : (
+                            <div style={{
+                                ...styles.profileAvatar,
+                                background: 'linear-gradient(135deg, #006F79, #00b4d8)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#fff', fontWeight: 800, fontSize: '18px',
+                            }}>{initial}</div>
+                        )}
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '8px 16px 16px' }}>
+                        <p style={styles.profileName}>{displayName}</p>
+                        <span style={styles.profileRole}>{userRole}</span>
+                        <div style={styles.profileStats}>
+                            <div style={styles.stat}><strong style={{ color: '#006F79' }}>{activeFollowers}</strong><br /><small>Takipçi</small></div>
+                            <div style={styles.statDivider}></div>
+                            <div style={styles.stat}><strong style={{ color: '#006F79' }}>{activeFollowing}</strong><br /><small>Takip</small></div>
+                            <div style={styles.statDivider}></div>
+                            <div style={styles.stat}><strong style={{ color: '#006F79' }}>{activePosts}</strong><br /><small>Gönderi</small></div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Link>
             <div style={styles.navCard}>
                 <p style={styles.navCaption}>ANA MENÜ</p>
-                {navItems.map((item) => (
-                    <Link key={item.id} to={item.path} style={{ ...styles.navItem, ...(activeMenu === item.id ? styles.navItemActive : {}) }}>
-                        <i className={item.icon} style={{ ...styles.navIcon, ...(activeMenu === item.id ? { color: '#006F79' } : {}) }}></i>
-                        <span>{item.label}</span>
-                        {activeMenu === item.id && <span style={styles.navDot}></span>}
-                    </Link>
-                ))}
+                {navItems.map((item) => {
+                    const isActive = activeMenu === item.id;
+                    return (
+                        <Link 
+                            key={item.id} 
+                            to={item.path} 
+                            className={`nav-item-link ${isActive ? 'active-item' : ''}`}
+                        >
+                            <i className={`nav-icon ${item.icon}`} style={{ width: '20px', marginRight: '12px', fontSize: '18px', color: isActive ? '#ffffff' : '#999', transition: 'color 0.2s' }}></i>
+                            <span>{item.label}</span>
+                            {isActive && <span className="nav-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ffffff', marginLeft: 'auto' }}></span>}
+                        </Link>
+                    );
+                })}
                 {userRole === 'Admin' && (
-                    <Link to="/admin" style={{...styles.navItem, marginTop: '8px', backgroundColor: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c'}}>
-                        <i className="feather-shield" style={{...styles.navIcon, color: '#e74c3c'}}></i><span style={{fontWeight: 700}}>Yönetici Paneli</span>
+                    <Link to="/admin" className="nav-item-link" style={{marginTop: '8px', backgroundColor: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c'}}>
+                        <i className="nav-icon feather-shield" style={{width: '20px', marginRight: '12px', fontSize: '18px', color: '#e74c3c'}}></i><span style={{fontWeight: 700}}>Yönetici Paneli</span>
                     </Link>
                 )}
                 <div style={{ borderTop: '1px solid #f0f2f5', margin: '8px 0' }}></div>
-                <Link to="/login" style={styles.navItem} onClick={() => localStorage.clear()}>
-                    <i className="feather-log-out" style={{ ...styles.navIcon, color: '#e74c3c' }}></i>
+                <Link to="/login" className="nav-item-link" onClick={() => localStorage.clear()}>
+                    <i className="nav-icon feather-log-out" style={{ width: '20px', marginRight: '12px', fontSize: '18px', color: '#e74c3c' }}></i>
                     <span style={{ color: '#e74c3c' }}>Çıkış Yap</span>
                 </Link>
             </div>

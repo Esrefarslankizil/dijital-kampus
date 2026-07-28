@@ -11,6 +11,12 @@ namespace DijitalKampus.API.Models
         [Required]
         public string Role { get; set; } = string.Empty; // Admin, Student, Alumni, Employer
 
+        public string? AvatarUrl { get; set; } // Profil resmi yolu
+        public string? CoverUrl { get; set; }  // Kapak fotoğrafı yolu
+
+        public string? FirstName { get; set; } // Adı
+        public string? LastName { get; set; }  // Soyadı
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? DeletedAt { get; set; }
         public bool IsApproved { get; set; } = true;
