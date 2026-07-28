@@ -495,5 +495,3 @@ const S = {
     mFooter: { display: 'flex', gap: 12, padding: '16px 24px', borderTop: '1px solid #f0f2f5', flexShrink: 0 },
     label: { display: 'block', fontSize: 12, fontWeight: 700, color: '#666', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' },
 };
-
-export default ProfilePage;
