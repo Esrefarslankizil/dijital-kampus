@@ -23,7 +23,7 @@ public class EventsController : ControllerBase
     public async Task<IActionResult> GetEvents([FromQuery] string? category, [FromQuery] string? search, [FromQuery] int userId = 0)
     {
         var query = _context.Events
-            .Where(e => e.DeletedAt == null);
+            .Where(e => e.DeletedAt == null && e.IsApproved);
 
         if (!string.IsNullOrWhiteSpace(category) && category != "all")
             query = query.Where(e => e.EventType == category);

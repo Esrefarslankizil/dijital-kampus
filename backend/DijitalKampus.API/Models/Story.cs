@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -12,8 +12,10 @@ public class Story
     [Required]
     public int UserId { get; set; }
 
-    [Required]
-    public string MediaPath { get; set; } = string.Empty;
+    public string? MediaPath { get; set; }
+    public string? TextContent { get; set; }
+    public string? BackgroundColor { get; set; }
+    public string? TextColor { get; set; }
 
     public DateTime ExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

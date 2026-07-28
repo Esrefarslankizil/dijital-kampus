@@ -89,6 +89,86 @@ public class AdminController : ControllerBase
             .ToListAsync();
         return Ok(logs);
     }
+
+    [HttpGet("pending-events")]
+    public async Task<IActionResult> GetPendingEvents()
+    {
+        var events = await _context.Events.Include(e => e.Organizer)
+            .Where(e => !e.IsApproved && e.DeletedAt == null)
+            .Select(e => new { e.Id, e.Title, e.Description, Organizer = e.Organizer.Email, e.CreatedAt })
+            .ToListAsync();
+        return Ok(events);
+    }
+
+    [HttpPost("events/{id}/approve")]
+    public async Task<IActionResult> ApproveEvent(int id)
+    {
+        var e = await _context.Events.FindAsync(id);
+        if (e == null) return NotFound();
+        e.IsApproved = true;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpDelete("events/{id}")]
+    public async Task<IActionResult> DeleteEvent(int id)
+    {
+        var e = await _context.Events.FindAsync(id);
+        if (e == null) return NotFound();
+        _context.Events.Remove(e);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpGet("pending-groups")]
+    public async Task<IActionResult> GetPendingGroups()
+    {
+        var groups = await _context.Groups.Include(g => g.Creator)
+            .Where(g => !g.IsApproved && g.DeletedAt == null)
+            .Select(g => new { g.Id, g.Name, g.Description, Creator = g.Creator.Email, g.CreatedAt })
+            .ToListAsync();
+        return Ok(groups);
+    }
+
+    [HttpPost("groups/{id}/approve")]
+    public async Task<IActionResult> ApproveGroup(int id)
+    {
+        var g = await _context.Groups.FindAsync(id);
+        if (g == null) return NotFound();
+        g.IsApproved = true;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpDelete("groups/{id}")]
+    public async Task<IActionResult> DeleteGroup(int id)
+    {
+        var g = await _context.Groups.FindAsync(id);
+        if (g == null) return NotFound();
+        _context.Groups.Remove(g);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpGet("posts")]
+    public async Task<IActionResult> GetAllPosts()
+    {
+        var posts = await _context.Posts.Include(p => p.User)
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => new { p.Id, p.Content, Author = p.User.Email, p.CreatedAt })
+            .ToListAsync();
+        return Ok(posts);
+    }
+
+    [HttpDelete("posts/{id}")]
+    public async Task<IActionResult> DeletePost(int id)
+    {
+        var p = await _context.Posts.FindAsync(id);
+        if (p == null) return NotFound();
+        _context.Posts.Remove(p);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }
 
 public class ToggleStatusRequest

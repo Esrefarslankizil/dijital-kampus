@@ -21,7 +21,7 @@ public class GroupsController : ControllerBase
     public async Task<IActionResult> GetGroups([FromQuery] string? category, [FromQuery] string? search)
     {
         var query = _context.Groups
-            .Where(g => g.DeletedAt == null);
+            .Where(g => g.DeletedAt == null && g.IsApproved);
 
         if (!string.IsNullOrWhiteSpace(category) && category != "all")
             query = query.Where(g => g.Category == category);
@@ -52,7 +52,7 @@ public class GroupsController : ControllerBase
     {
         var myGroups = await _context.GroupMembers
             .Where(gm => gm.UserId == userId)
-            .Where(gm => gm.Group.DeletedAt == null)
+            .Where(gm => gm.Group.DeletedAt == null && gm.Group.IsApproved)
             .Select(gm => new
             {
                 gm.Group.Id,

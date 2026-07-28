@@ -19,7 +19,7 @@ function AppContent() {
   const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
   const location = useLocation();
 
-  const hideHeaderRoutes = ['/login', '/onboarding', '/'];
+  const hideHeaderRoutes = ['/login', '/onboarding', '/', '/admin'];
   const shouldShowHeader = !hideHeaderRoutes.includes(location.pathname);
 
   return (
