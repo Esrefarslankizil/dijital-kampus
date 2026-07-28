@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import MtuLogo from '../MtuLogo';
 
 function Header({ onOpenLogin, onOpenRegister }) {
     const [keyword, setKeyword] = useState("");
     const [results, setResults] = useState([]);
     const [showRightSearch, setShowRightSearch] = useState(false);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); 
+    const navigate = useNavigate();
 
     const handleSearch = async (e) => {
         const val = e.target.value;
@@ -25,8 +27,73 @@ function Header({ onOpenLogin, onOpenRegister }) {
             setResults([]);
         }
     };
+
   return (
-    <div className="nav-header bg-white shadow-xs border-0" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, height: '60px' }}>
+    <div className="nav-header bg-white border-0" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, height: '60px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        
+        {/* CSS SIFIRLAMA VE MİLİMETRİK EŞİTLEME */}
+        <style>{`
+            .custom-dropdown-menu {
+                position: absolute !important;
+                top: 50px !important;
+                right: 0 !important;
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+                width: 160px !important;
+                padding: 6px !important;
+                z-index: 9999 !important;
+            }
+
+            .dropdown-btn {
+                all: unset !important; /* Dışarıdan gelen tüm CSS'leri ezer */
+                box-sizing: border-box !important;
+                width: 100% !important;
+                display: flex !important;
+                align-items: center !important;
+                padding: 8px 12px !important;
+                border-radius: 8px !important;
+                font-size: 13.5px !important;
+                font-weight: 500 !important;
+                color: #334155 !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+            }
+
+            .dropdown-btn i {
+                font-size: 16px !important;
+                margin-right: 10px !important;
+                color: #64748b !important;
+                transition: all 0.2s ease !important;
+            }
+
+            .dropdown-btn:hover {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+            }
+
+            .dropdown-btn:hover i {
+                color: var(--mtu-primary, #0284c7) !important;
+            }
+
+            .dropdown-btn.logout:hover {
+                background-color: #fef2f2 !important;
+                color: #dc2626 !important;
+            }
+
+            .dropdown-btn.logout:hover i {
+                color: #dc2626 !important;
+            }
+
+            .menu-divider {
+                height: 1px !important;
+                background-color: #f1f5f9 !important;
+                margin: 4px 0 !important;
+                border: none !important;
+            }
+        `}</style>
+
         <div className="nav-top w-100 d-flex align-items-center" style={{ height: '60px', padding: '0 20px' }}>
             <a href="/feed" className="d-flex align-items-center text-decoration-none" style={{ flexShrink: 0 }}>
                 <MtuLogo height={38} />
@@ -193,8 +260,47 @@ function Header({ onOpenLogin, onOpenRegister }) {
                     </div>
                 )}
 
-                <div className="d-none d-md-block ms-1">
-                    <img src="/images/user-7.png" alt="profil" style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mtu-primary)', cursor: 'pointer' }} />
+                {/* PROFIL AVATARI VE SIFIRLANMIŞ EŞİT MENÜ */}
+                <div className="d-none d-md-block ms-1" style={{ position: 'relative' }}>
+                    <img 
+                        src="/images/user-7.png" 
+                        alt="profil" 
+                        onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                        style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mtu-primary)', cursor: 'pointer' }} 
+                    />
+                    
+                    {isProfileMenuOpen && (
+                        <div className="custom-dropdown-menu">
+                            
+                            {/* Profilim Butonu */}
+                            <div 
+                                className="dropdown-btn"
+                                onClick={() => {
+                                    setIsProfileMenuOpen(false);
+                                    navigate('/profile');
+                                }}
+                            >
+                                <i className="feather-user"></i>
+                                <span>Profilim</span>
+                            </div>
+                            
+                            <div className="menu-divider"></div>
+                            
+                            {/* Çıkış Yap Butonu */}
+                            <div 
+                                className="dropdown-btn logout"
+                                onClick={() => {
+                                    setIsProfileMenuOpen(false);
+                                    localStorage.clear();
+                                    navigate('/login');
+                                }}
+                            >
+                                <i className="feather-log-out"></i>
+                                <span>Çıkış Yap</span>
+                            </div>
+
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -208,7 +314,7 @@ const iconBtnStyle = {
     borderRadius: '50%',
     backgroundColor: '#f0f2f5',
     textDecoration: 'none',
-    transition: 'background 0.15s',
+    transition: 'all 0.2s',
 };
 
 export default Header;
