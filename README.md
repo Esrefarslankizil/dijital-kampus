@@ -5,7 +5,7 @@ Malatya Turgut Özal Üniversitesi öğrencileri ve personeli için geliştirilm
 ## 🚀 Teknolojik Altyapı
 Bu proje modern bir **Monorepo** mimarisi kullanılarak iki ana parçaya ayrılmıştır:
 * **Frontend (Arayüz):** React.js + Vite
-* **Backend (Sunucu):** .NET Core (C#) + Entity Framework Core + SQLite
+* **Backend (Sunucu):** .NET Core (C#) + Entity Framework Core + MYSQL
 
 ---
 
