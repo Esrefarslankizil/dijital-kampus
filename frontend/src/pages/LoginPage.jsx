@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { authService } from '../services/api';
 import MtuLogo from '../components/MtuLogo';
+import RegisterModal from '../components/RegisterModal';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const handleGoogleLogin = useGoogleLogin({
       onSuccess: async (tokenResponse) => {
@@ -115,7 +117,7 @@ function LoginPage() {
                             </button>
                             
                             <h6 className="text-grey-500 font-xss fw-500 mt-2 mb-0 lh-32 text-center">
-                                Dont have account? <a href="#" className="fw-700 ms-1 text-primary">Register</a>
+    Dont have account? <span onClick={() => setIsRegisterOpen(true)} className="fw-700 ms-1 text-primary" style={{ cursor: 'pointer' }}>Register</span>
                             </h6>
                         </form>
                          
@@ -129,6 +131,8 @@ function LoginPage() {
                     </div>
             </div> 
         </div>
+        {/* Kayıt Modalı */}
+        <RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />  
     </div>
   );
 }
