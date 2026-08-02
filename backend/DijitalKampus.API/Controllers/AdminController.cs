@@ -95,7 +95,33 @@ public class AdminController : ControllerBase
     {
         var events = await _context.Events.Include(e => e.Organizer)
             .Where(e => !e.IsApproved && e.DeletedAt == null)
-            .Select(e => new { e.Id, e.Title, e.Description, Organizer = e.Organizer.Email, e.CreatedAt })
+            .Select(e => new { 
+                e.Id, 
+                e.Title, 
+                e.Description, 
+                Organizer = string.IsNullOrEmpty(e.Organizer.FirstName) ? e.Organizer.Email : e.Organizer.FirstName + " " + e.Organizer.LastName,
+                OrganizerEmail = e.Organizer.Email,
+                Role = e.Organizer.Role,
+                e.CreatedAt 
+            })
+            .ToListAsync();
+        return Ok(events);
+    }
+
+    [HttpGet("approved-events")]
+    public async Task<IActionResult> GetApprovedEvents()
+    {
+        var events = await _context.Events.Include(e => e.Organizer)
+            .Where(e => e.IsApproved && e.DeletedAt == null)
+            .Select(e => new { 
+                e.Id, 
+                e.Title, 
+                e.Description, 
+                Organizer = string.IsNullOrEmpty(e.Organizer.FirstName) ? e.Organizer.Email : e.Organizer.FirstName + " " + e.Organizer.LastName,
+                OrganizerEmail = e.Organizer.Email,
+                Role = e.Organizer.Role,
+                e.CreatedAt 
+            })
             .ToListAsync();
         return Ok(events);
     }
@@ -125,7 +151,33 @@ public class AdminController : ControllerBase
     {
         var groups = await _context.Groups.Include(g => g.Creator)
             .Where(g => !g.IsApproved && g.DeletedAt == null)
-            .Select(g => new { g.Id, g.Name, g.Description, Creator = g.Creator.Email, g.CreatedAt })
+            .Select(g => new { 
+                g.Id, 
+                g.Name, 
+                g.Description, 
+                Creator = string.IsNullOrEmpty(g.Creator.FirstName) ? g.Creator.Email : g.Creator.FirstName + " " + g.Creator.LastName,
+                CreatorEmail = g.Creator.Email,
+                Role = g.Creator.Role,
+                g.CreatedAt 
+            })
+            .ToListAsync();
+        return Ok(groups);
+    }
+
+    [HttpGet("approved-groups")]
+    public async Task<IActionResult> GetApprovedGroups()
+    {
+        var groups = await _context.Groups.Include(g => g.Creator)
+            .Where(g => g.IsApproved && g.DeletedAt == null)
+            .Select(g => new { 
+                g.Id, 
+                g.Name, 
+                g.Description, 
+                Creator = string.IsNullOrEmpty(g.Creator.FirstName) ? g.Creator.Email : g.Creator.FirstName + " " + g.Creator.LastName,
+                CreatorEmail = g.Creator.Email,
+                Role = g.Creator.Role,
+                g.CreatedAt 
+            })
             .ToListAsync();
         return Ok(groups);
     }
@@ -153,9 +205,19 @@ public class AdminController : ControllerBase
     [HttpGet("posts")]
     public async Task<IActionResult> GetAllPosts()
     {
-        var posts = await _context.Posts.Include(p => p.User)
+        var posts = await _context.Posts
+            .Include(p => p.User)
+            .Include(p => p.PostMedias)
             .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new { p.Id, p.Content, Author = p.User.Email, p.CreatedAt })
+            .Select(p => new { 
+                p.Id, 
+                p.Content, 
+                Author = string.IsNullOrEmpty(p.User.FirstName) ? p.User.Email : p.User.FirstName + " " + p.User.LastName,
+                AuthorEmail = p.User.Email,
+                Role = p.User.Role,
+                p.CreatedAt,
+                MediaCount = p.PostMedias.Count
+            })
             .ToListAsync();
         return Ok(posts);
     }

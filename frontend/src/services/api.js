@@ -81,6 +81,21 @@ export const postService = {
         return await response.json();
     },
 
+    getComments: async (postId) => {
+        const response = await authFetch(API_BASE_URL + '/posts/' + postId + '/comments');
+        if (!response.ok) return [];
+        return await response.json();
+    },
+
+    addComment: async (postId, userId, content) => {
+        const response = await authFetch(API_BASE_URL + '/posts/' + postId + '/comments', {
+            method: 'POST',
+            body: JSON.stringify({ userId: userId, content: content }),
+        });
+        if (!response.ok) throw new Error('Yorum eklenemedi.');
+        return await response.json();
+    },
+
     deletePost: async (postId) => {
         const response = await authFetch(API_BASE_URL + '/posts/' + postId, {
             method: 'DELETE',
@@ -175,7 +190,25 @@ export const adminService = {
 
     getPendingEvents: async () => {
         const response = await authFetch(API_BASE_URL + '/admin/pending-events');
-        if (!response.ok) throw new Error('Etkinlikler yuklenemedi.');
+        if (!response.ok) return [];
+        return await response.json();
+    },
+    
+    getApprovedEvents: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/approved-events');
+        if (!response.ok) return [];
+        return await response.json();
+    },
+
+    getPendingGroups: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/pending-groups');
+        if (!response.ok) return [];
+        return await response.json();
+    },
+    
+    getApprovedGroups: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/approved-groups');
+        if (!response.ok) return [];
         return await response.json();
     },
 

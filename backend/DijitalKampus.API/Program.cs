@@ -60,6 +60,13 @@ using (var scope = app.Services.CreateScope())
     }
 
     var test3Email = "test3@mtu.edu.tr";
+
+    var adminEmail = "admin@mtu.edu.tr";
+    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    {
+        var adminUser = new User { UserName = adminEmail, Email = adminEmail, Role = "Admin", IsApproved = true, CreatedAt = DateTime.UtcNow };
+        await userManager.CreateAsync(adminUser, "Sifre123!");
+    }
     if (await userManager.FindByEmailAsync(test3Email) == null)
     {
         var test3User = new User { UserName = test3Email, Email = test3Email, Role = "Ogrenci", IsApproved = true, CreatedAt = DateTime.UtcNow };

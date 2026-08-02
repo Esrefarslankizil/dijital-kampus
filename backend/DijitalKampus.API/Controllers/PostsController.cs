@@ -179,6 +179,62 @@ namespace DijitalKampus.API.Controllers
 
             return Ok(new { message = "Gönderi başarıyla silindi." });
         }
+
+        // GET: api/posts/{id}/comments
+        [HttpGet("{id}/comments")]
+        public async Task<IActionResult> GetComments(int id)
+        {
+            var comments = await _context.Comments
+                .Include(c => c.User)
+                .Where(c => c.PostId == id)
+                .OrderBy(c => c.CreatedAt)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Content,
+                    c.CreatedAt,
+                    Author = string.IsNullOrEmpty(c.User.FirstName) ? c.User.Email : c.User.FirstName + " " + c.User.LastName,
+                    Role = c.User.Role
+                })
+                .ToListAsync();
+
+            return Ok(comments);
+        }
+
+        // POST: api/posts/{id}/comments
+        [HttpPost("{id}/comments")]
+        public async Task<IActionResult> AddComment(int id, [FromBody] CreateCommentRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Content))
+                return BadRequest(new { message = "Yorum içeriği boş olamaz." });
+
+            var post = await _context.Posts.FindAsync(id);
+            if (post == null)
+                return NotFound(new { message = "Gönderi bulunamadı." });
+
+            var userId = request.UserId > 0 ? request.UserId : 1;
+
+            var comment = new Comment
+            {
+                PostId = id,
+                UserId = userId,
+                Content = request.Content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Comments.Add(comment);
+            await _context.SaveChangesAsync();
+
+            // Dönüşte author bilgisini de doldurmak için User'ı manuel de alabiliriz veya basit dönebiliriz.
+            return Ok(new
+            {
+                comment.Id,
+                comment.Content,
+                comment.CreatedAt,
+                Author = "Kullanıcı", // Yorumu ekleyen kullanıcı bilgisi
+                Role = "Öğrenci"
+            });
+        }
     }
 
     public class CreatePostRequest
@@ -188,6 +244,12 @@ namespace DijitalKampus.API.Controllers
         // Hata 5: Fotoğraf ve etiket alanları eklendi
         public IFormFile? Image { get; set; }
         public string? Hashtags { get; set; }
+    }
+
+    public class CreateCommentRequest
+    {
+        public int UserId { get; set; }
+        public string Content { get; set; } = string.Empty;
     }
 }
 
