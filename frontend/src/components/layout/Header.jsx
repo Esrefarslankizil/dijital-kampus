@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MtuLogo from '../MtuLogo';
+
+// localStorage'dan görünen adı hesapla
+const getDisplayNameFromStorage = () => {
+    const firstName = localStorage.getItem('firstName') || '';
+    const lastName  = localStorage.getItem('lastName') || '';
+    const fullName  = [firstName, lastName].filter(Boolean).join(' ').trim();
+    return fullName || localStorage.getItem('displayName') || localStorage.getItem('email') || 'Kullanıcı';
+};
 
 function Header({ onOpenLogin, onOpenRegister }) {
     const [keyword, setKeyword] = useState("");
     const [results, setResults] = useState([]);
     const [showRightSearch, setShowRightSearch] = useState(false);
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); 
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    // Hata 2: Canlı isim state'i
+    const [headerDisplayName, setHeaderDisplayName] = useState(getDisplayNameFromStorage);
     const navigate = useNavigate();
+
+    // localStorage değiştiğinde ismi güncelle
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setHeaderDisplayName(getDisplayNameFromStorage());
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     const handleSearch = async (e) => {
         const val = e.target.value;
@@ -262,12 +281,13 @@ function Header({ onOpenLogin, onOpenRegister }) {
 
                 {/* PROFIL AVATARI VE SIFIRLANMIŞ EŞİT MENÜ */}
                 <div className="d-none d-md-block ms-1" style={{ position: 'relative' }}>
-                    <img 
-                        src="/images/user-7.png" 
-                        alt="profil" 
+                    <div
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                        style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mtu-primary)', cursor: 'pointer' }} 
-                    />
+                        style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #006F79, #00b4d8)', border: '2px solid var(--mtu-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15 }}
+                        title={headerDisplayName}
+                    >
+                        {headerDisplayName.charAt(0).toUpperCase()}
+                    </div>
                     
                     {isProfileMenuOpen && (
                         <div className="custom-dropdown-menu">

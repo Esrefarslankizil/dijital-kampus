@@ -72,7 +72,7 @@ namespace DijitalKampus.API.Controllers
             return CreatedAtAction(nameof(GetProfileById), new { id = newProfile.UserId }, newProfile);
         }
 
-        // MEVCUT BİR PROFİLİ GÜNCELLEME (UPDATE)
+        // MEVCUT BİR PROFİLİ GÜNCELLEME VEYA OLUŞTURMA (UPSERT)
         // PUT: api/profiles/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProfile(int id, [FromBody] StudentProfile updatedProfile)
@@ -82,25 +82,38 @@ namespace DijitalKampus.API.Controllers
                 return BadRequest(new { message = "URL'deki ID ile profil ID'si eşleşmiyor." });
             }
 
-            _context.Entry(updatedProfile).State = EntityState.Modified;
+            // Profil var mı kontrol et
+            var existing = await _context.StudentProfiles.FirstOrDefaultAsync(p => p.UserId == id);
 
-            try
+            if (existing == null)
             {
-                await _context.SaveChangesAsync();
+                // Profil yok → Yeni kayıt oluştur (Upsert)
+                // DepartmentId gönderilmediyse veya 0 ise, geçerli bir varsayılan kullan
+                if (updatedProfile.DepartmentId <= 0)
+                {
+                    var firstDept = await _context.Departments.OrderBy(d => d.Id).FirstOrDefaultAsync();
+                    updatedProfile.DepartmentId = firstDept?.Id ?? 1;
+                }
+                _context.StudentProfiles.Add(updatedProfile);
             }
-            catch (DbUpdateConcurrencyException)
+            else
             {
-                if (!_context.StudentProfiles.Any(e => e.UserId == id))
-                {
-                    return NotFound(new { message = "Güncellenecek profil bulunamadı." });
-                }
-                else
-                {
-                    throw;
-                }
+                // Profil var → Sadece güncellenebilir alanları uygula
+                if (updatedProfile.Biography != null)
+                    existing.Biography = updatedProfile.Biography;
+                if (updatedProfile.Grade != null)
+                    existing.Grade = updatedProfile.Grade;
+                if (updatedProfile.TargetSector != null)
+                    existing.TargetSector = updatedProfile.TargetSector;
+                if (updatedProfile.TargetPosition != null)
+                    existing.TargetPosition = updatedProfile.TargetPosition;
+                if (updatedProfile.DepartmentId > 0)
+                    existing.DepartmentId = updatedProfile.DepartmentId;
             }
 
-            return NoContent(); 
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Profil başarıyla güncellendi." });
         }
 
         // MEVCUT BİR PROFİLİ SİLME (DELETE)

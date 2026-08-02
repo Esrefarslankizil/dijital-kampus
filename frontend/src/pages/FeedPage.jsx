@@ -162,17 +162,20 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
 
 const CreatePostBox = ({ onShare, isPosting, error, success }) => {
     const [text, setText] = useState('');
-    const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedImagePreview, setSelectedImagePreview] = useState(null); // Görüntü ön izleme URL'i
+    const [selectedImageFile, setSelectedImageFile] = useState(null);       // Gerçek File nesnesi
     const [hashtagInput, setHashtagInput] = useState('');
     const [hashtags, setHashtags] = useState([]);
     const [showHashtagInput, setShowHashtagInput] = useState(false);
     const fileInputRef = React.useRef(null);
 
     const handleShareClick = async () => {
-        if (!text.trim() && !selectedImage) return;
-        await onShare(text.trim(), selectedImage, hashtags);
+        if (!text.trim() && !selectedImageFile) return;
+        // Hata 5: imageFile gerçek dosya nesnesini gönder
+        await onShare(text.trim(), selectedImageFile, hashtags);
         setText('');
-        setSelectedImage(null);
+        setSelectedImagePreview(null);
+        setSelectedImageFile(null);
         setHashtags([]);
         setHashtagInput('');
         setShowHashtagInput(false);
@@ -180,7 +183,9 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
-            setSelectedImage(URL.createObjectURL(e.target.files[0]));
+            const file = e.target.files[0];
+            setSelectedImageFile(file);                         // Dosya nesnesini sakla
+            setSelectedImagePreview(URL.createObjectURL(file)); // Ön izleme URL'i
         }
     }
 
@@ -243,10 +248,11 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                         </div>
                     )}
 
-                    {selectedImage && (
+                    {/* Ön izleme resmi göster */}
+                    {selectedImagePreview && (
                         <div style={{ position: 'relative', marginTop: '10px', display: 'inline-block', maxWidth: '100%' }}>
-                            <img src={selectedImage} alt="preview" style={{ maxHeight: '300px', maxWidth: '100%', borderRadius: '12px', objectFit: 'contain', backgroundColor: 'rgba(0,0,0,0.03)' }} />
-                            <button onClick={() => setSelectedImage(null)} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="feather-x"></i></button>
+                            <img src={selectedImagePreview} alt="preview" style={{ maxHeight: '300px', maxWidth: '100%', borderRadius: '12px', objectFit: 'contain', backgroundColor: 'rgba(0,0,0,0.03)' }} />
+                            <button onClick={() => { setSelectedImagePreview(null); setSelectedImageFile(null); }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="feather-x"></i></button>
                         </div>
                     )}
                 </div>
@@ -263,8 +269,8 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                 </button>
                 <button
                     onClick={handleShareClick}
-                    disabled={isPosting || (!text.trim() && !selectedImage)}
-                    style={{ ...styles.postActionBtn, marginLeft: 'auto', backgroundColor: ((!text.trim() && !selectedImage) || isPosting) ? '#ccc' : '#006F79', color: '#fff', fontWeight: 700, borderRadius: '20px', padding: '8px 24px', cursor: ((!text.trim() && !selectedImage) || isPosting) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: ((!text.trim() && !selectedImage) || isPosting) ? 'none' : '0 4px 12px rgba(0,111,121,0.3)' }}
+                    disabled={isPosting || (!text.trim() && !selectedImageFile)}
+                    style={{ ...styles.postActionBtn, marginLeft: 'auto', backgroundColor: ((!text.trim() && !selectedImageFile) || isPosting) ? '#ccc' : '#006F79', color: '#fff', fontWeight: 700, borderRadius: '20px', padding: '8px 24px', cursor: ((!text.trim() && !selectedImageFile) || isPosting) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: ((!text.trim() && !selectedImageFile) || isPosting) ? 'none' : '0 4px 12px rgba(0,111,121,0.3)' }}
                 >
                     {isPosting ? 'Paylaşılıyor...' : 'Paylaş'}
                 </button>
@@ -289,14 +295,18 @@ export default function FeedPage() {
     const userEmail = localStorage.getItem('email') || 'kullanici@mtu.edu.tr';
     const userRole = localStorage.getItem('role') || 'Öğrenci';
     
-    // JWT'den userId çıkar
+    // JWT'den userId çıkar (dummy token ve gerçek JWT destekli)
     const getUserIdFromToken = () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) return 1; // Fallback for testing
+            if (!token) return 0;
+            // Dummy token format: dummy-jwt-token-{id}
+            if (token.startsWith('dummy-jwt-token-'))
+                return parseInt(token.replace('dummy-jwt-token-', '')) || 0;
+            // Gerçek JWT
             const payload = JSON.parse(atob(token.split('.')[1]));
-            return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 1;
-        } catch { return 1; }
+            return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 0;
+        } catch { return 0; }
     };
     const currentUserId = getUserIdFromToken();
 
@@ -309,10 +319,12 @@ export default function FeedPage() {
                     const mapped = apiPosts.map(p => ({
                         id: p.id,
                         user: p.author || 'Kullanıcı',
+                        authorId: p.authorId,
                         avatar: '/images/user-7.png',
                         time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }),
                         role: 'Kullanıcı',
                         content: p.content,
+                        image: p.medias?.[0]?.url ? 'http://localhost:5181' + p.medias[0].url : null,
                         likes: p.likeCount || 0,
                         comments: p.commentCount || 0,
                         liked: false,
@@ -348,7 +360,7 @@ export default function FeedPage() {
         loadStories();
     }, []);
 
-    const handleShare = async (text, imageUrl, hashtags) => {
+    const handleShare = async (text, imageFile, hashtags) => {
         setIsPosting(true);
         setFeedError('');
         setPostSuccess('');
@@ -359,19 +371,26 @@ export default function FeedPage() {
                 ? '\n' + uniqueHashtags.map(t => '#' + t).join(' ')
                 : '';
             const fullContent = (text + hashtagString).trim();
-            if (!fullContent) return;
+            if (!fullContent && !imageFile) return;
 
-            const newPost = await postService.createPost(currentUserId, fullContent);
+            // Hata 5: imageFile ve hashtags'i gönder (FormData)
+            const newPost = await postService.createPost(currentUserId, fullContent || ' ', imageFile, uniqueHashtags);
             
+            // Önizleme URL'i: backend'den gelen media URL ya da geçici blob
+            const previewImageUrl = newPost.medias?.[0]?.url
+                ? 'http://localhost:5181' + newPost.medias[0].url
+                : (imageFile ? URL.createObjectURL(imageFile) : null);
+
             setPostList([{
                 id: newPost.id,
-                user: userEmail,
+                user: newPost.author || userEmail,
+                authorId: currentUserId,
                 avatar: '/images/user-7.png',
                 time: 'Şimdi',
                 role: userRole,
                 content: text,
-                image: imageUrl, // UI'da hemen göstermek için ekliyoruz
-                hashtags: hashtags, // UI'da göstermek için ekliyoruz
+                image: previewImageUrl,
+                hashtags: uniqueHashtags,
                 likes: 0,
                 comments: 0,
                 liked: false,
@@ -466,7 +485,7 @@ export default function FeedPage() {
                             post={post} 
                             onLike={handleLike} 
                             onDelete={handleDeletePost}
-                            isOwnPost={post.user === userEmail}
+                            isOwnPost={post.authorId === currentUserId}
                         />
                     ))
                 )}

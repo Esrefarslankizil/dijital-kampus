@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import LeftSidebar from '../components/layout/LeftSidebar';
 import RightSidebar from '../components/layout/RightSidebar';
-import { profileService, followService, chatService } from '../services/api';
+import { profileService, followService, chatService, postService } from '../services/api';
 import PostCard from '../components/posts/PostCard';
 import ImageCropperModal from '../components/ui/ImageCropperModal';
 import axios from 'axios';
@@ -91,7 +91,25 @@ export default function ProfilePage() {
     const loadProfile = async () => {
         setLoading(true);
         try {
-            const data = await profileService.getProfile(id);
+            const targetId = parseInt(id) || currentUserId;
+            const data = await profileService.getProfile(targetId);
+            
+            // Projeler ve sertifikalar (Student Profile) için ek istek
+            try {
+                const studentProfileRes = await axios.get(`${API_BASE}/api/profiles/${targetId}`);
+                if (studentProfileRes.data) {
+                    data.projects = studentProfileRes.data.projects || [];
+                    data.certificates = studentProfileRes.data.certificates || [];
+                    if (!data.biography) {
+                        data.biography = studentProfileRes.data.biography || '';
+                    }
+                }
+            } catch (err) {
+                console.warn("Öğrenci profili bulunamadı veya çekilemedi:", err);
+                data.projects = [];
+                data.certificates = [];
+            }
+
             setProfile(data);
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
@@ -118,8 +136,34 @@ export default function ProfilePage() {
             setProfile(prev => ({ ...prev, ...result }));
             setShowEditModal(false);
             toast.success('Profil güncellendi!');
+
+            // Hata 2 düzeltmesi: localStorage'ı anında güncelle
+            const newDisplayName = result.displayName ||
+                [result.firstName, result.lastName].filter(Boolean).join(' ').trim() ||
+                result.userName || editUserName.trim();
+            if (result.firstName) localStorage.setItem('firstName', result.firstName);
+            if (result.lastName)  localStorage.setItem('lastName',  result.lastName);
+            localStorage.setItem('displayName', newDisplayName);
+
+            // Header bileşenini uyarı için storage event tetikle
+            window.dispatchEvent(new Event('storage'));
         } catch (err) { setEditError(err.message); }
         finally { setEditSaving(false); }
+    };
+
+    const handleDeleteProfilePost = async (postId) => {
+        if (!window.confirm("Bu gönderiyi silmek istediğinize emin misiniz?")) return;
+        
+        try {
+            await postService.deletePost(postId);
+            setProfile(prev => ({
+                ...prev,
+                posts: prev.posts.filter(p => p.id !== postId)
+            }));
+            toast.success('Gönderi silindi!');
+        } catch (err) {
+            toast.error('Gönderi silinirken bir hata oluştu.');
+        }
     };
 
     // --- SENİN PORTFOLYO FONKSİYONLARIN ---
@@ -260,7 +304,8 @@ export default function ProfilePage() {
         </div>
     );
 
-    const isMe = currentUserId > 0 && parseInt(id) === currentUserId;
+    const targetProfileId = parseInt(id) || currentUserId;
+    const isMe = currentUserId > 0 && targetProfileId === currentUserId;
     const displayName = profile.displayName || profile.userName || profile.email || 'Kullanıcı';
     const avatarSrc = toAbsoluteUrl(profile.avatarUrl);
     const coverSrc = toAbsoluteUrl(profile.coverUrl);
@@ -268,7 +313,7 @@ export default function ProfilePage() {
     // Kendi portfolyo dizilerini güvene al
     const userProjects = profile.projects || [];
     const userCertificates = profile.certificates || [];
-    const userBio = profile.biography || 'Henüz bir biyografi eklenmemiş.';
+    const userBio = profile.biography || profile.bio || '';
 
     return (
         <div style={S.page}>
@@ -370,13 +415,13 @@ export default function ProfilePage() {
 
                 {/* ===== SEKME İÇERİKLERİ ===== */}
                 
-                {/* 1. GÖNDERİLER SEKMESİ */}
+                {/* 1. GENEL GÖNDERİLER SEKMESİ */}
                 {activeTab === 'gonderiler' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                         {profile.posts?.length > 0 ? profile.posts.map(p => (
                             <PostCard key={p.id}
-                                post={{ id: p.id, user: displayName, role: profile.departmentOrTitle, avatar: avatarSrc, time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }), content: p.content, likes: p.likeCount, comments: p.commentCount, liked: p.isLikedByMe, image: p.medias?.[0]?.url || null }}
-                                isOwnPost={isMe} onLike={loadProfile} onDelete={loadProfile}
+                                post={{ id: p.id, user: displayName, role: profile.departmentOrTitle, avatar: avatarSrc, time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }), content: p.content, likes: p.likeCount, comments: p.commentCount, liked: p.isLikedByMe, image: p.medias?.[0]?.url ? 'http://localhost:5181' + p.medias[0].url : null }}
+                                isOwnPost={isMe} onLike={loadProfile} onDelete={handleDeleteProfilePost}
                             />
                         )) : (
                             <div style={S.noPosts}>
@@ -407,9 +452,11 @@ export default function ProfilePage() {
                                 </div>
                             ) : (
                                 <div>
-                                    <p style={{ color: '#555', lineHeight: '1.6', marginBottom: '16px' }}>{userBio}</p>
+                                    <p style={{ color: '#555', lineHeight: '1.6', marginBottom: '16px' }}>
+                                        {userBio || 'Henüz bir biyografi eklenmemiş.'}
+                                    </p>
                                     {isMe && (
-                                        <button onClick={() => { setIsEditingBio(true); setNewBio(userBio === 'Henüz bir biyografi eklenmemiş.' ? '' : userBio); }} 
+                                        <button onClick={() => { setIsEditingBio(true); setNewBio(userBio || ''); }} 
                                             style={{ backgroundColor: '#e6f4f5', color: '#006F79', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                                             Düzenle
                                         </button>

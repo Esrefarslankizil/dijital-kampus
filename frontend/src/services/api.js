@@ -53,10 +53,26 @@ export const postService = {
         return await response.json();
     },
 
-    createPost: async (userId, content) => {
-        const response = await authFetch(API_BASE_URL + '/posts', {
+    // Hata 4 düzeltmesi: Kullanıcıya ait gönderileri çek
+    getPostsByUser: async (userId) => {
+        const response = await authFetch(API_BASE_URL + '/posts/user/' + userId);
+        if (!response.ok) throw new Error('Kullanici gonderileri yuklenemedi.');
+        return await response.json();
+    },
+
+    // Hata 5 düzeltmesi: FormData ile fotoğraf + hashtag gönder
+    createPost: async (userId, content, imageFile = null, hashtags = []) => {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('userId', userId);
+        formData.append('content', content);
+        if (imageFile) formData.append('image', imageFile);
+        if (hashtags && hashtags.length > 0) formData.append('hashtags', hashtags.join(','));
+
+        const response = await fetch(API_BASE_URL + '/posts', {
             method: 'POST',
-            body: JSON.stringify({ userId: userId, content: content }),
+            body: formData,
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
