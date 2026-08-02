@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DijitalKampus.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260726092452_AddTextToStories")]
-    partial class AddTextToStories
+    [Migration("20260802100134_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,10 @@ namespace DijitalKampus.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CurrentCompany")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CurrentPosition")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -82,6 +86,28 @@ namespace DijitalKampus.API.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("DijitalKampus.API.Models.Certificate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("StudentProfileId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentProfileId");
+
+                    b.ToTable("Certificates");
+                });
+
             modelBuilder.Entity("DijitalKampus.API.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
@@ -112,6 +138,65 @@ namespace DijitalKampus.API.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("DijitalKampus.API.Models.Conversation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsGroup")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("LastMessageAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Conversations");
+                });
+
+            modelBuilder.Entity("DijitalKampus.API.Models.ConversationParticipant", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasMuted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("UserId", "ConversationId")
+                        .IsUnique();
+
+                    b.ToTable("ConversationParticipants");
+                });
+
             modelBuilder.Entity("DijitalKampus.API.Models.Department", b =>
                 {
                     b.Property<int>("Id")
@@ -135,6 +220,10 @@ namespace DijitalKampus.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Sector")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -321,6 +410,42 @@ namespace DijitalKampus.API.Migrations
                     b.ToTable("GroupMembers");
                 });
 
+            modelBuilder.Entity("DijitalKampus.API.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("ConversationId", "SentAt");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("DijitalKampus.API.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -415,6 +540,34 @@ namespace DijitalKampus.API.Migrations
                     b.ToTable("PostMedias");
                 });
 
+            modelBuilder.Entity("DijitalKampus.API.Models.Project", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("StudentProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentProfileId");
+
+                    b.ToTable("Projects");
+                });
+
             modelBuilder.Entity("DijitalKampus.API.Models.Skill", b =>
                 {
                     b.Property<int>("Id")
@@ -452,6 +605,9 @@ namespace DijitalKampus.API.Migrations
                     b.Property<string>("MediaPath")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("TextColor")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("TextContent")
                         .HasColumnType("longtext");
 
@@ -470,8 +626,20 @@ namespace DijitalKampus.API.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Biography")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("DepartmentId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Grade")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TargetPosition")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TargetSector")
+                        .HasColumnType("longtext");
 
                     b.HasKey("UserId");
 
@@ -520,8 +688,14 @@ namespace DijitalKampus.API.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CoverUrl")
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedAt")
@@ -537,8 +711,14 @@ namespace DijitalKampus.API.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("FirstName")
+                        .HasColumnType("longtext");
+
                     b.Property<bool>("IsApproved")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
@@ -806,6 +986,17 @@ namespace DijitalKampus.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DijitalKampus.API.Models.Certificate", b =>
+                {
+                    b.HasOne("DijitalKampus.API.Models.StudentProfile", "StudentProfile")
+                        .WithMany("Certificates")
+                        .HasForeignKey("StudentProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StudentProfile");
+                });
+
             modelBuilder.Entity("DijitalKampus.API.Models.Comment", b =>
                 {
                     b.HasOne("DijitalKampus.API.Models.Post", "Post")
@@ -821,6 +1012,25 @@ namespace DijitalKampus.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DijitalKampus.API.Models.ConversationParticipant", b =>
+                {
+                    b.HasOne("DijitalKampus.API.Models.Conversation", "Conversation")
+                        .WithMany("Participants")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DijitalKampus.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
 
                     b.Navigation("User");
                 });
@@ -896,6 +1106,25 @@ namespace DijitalKampus.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DijitalKampus.API.Models.Message", b =>
+                {
+                    b.HasOne("DijitalKampus.API.Models.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DijitalKampus.API.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("DijitalKampus.API.Models.Notification", b =>
                 {
                     b.HasOne("DijitalKampus.API.Models.User", "User")
@@ -946,6 +1175,17 @@ namespace DijitalKampus.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("DijitalKampus.API.Models.Project", b =>
+                {
+                    b.HasOne("DijitalKampus.API.Models.StudentProfile", "StudentProfile")
+                        .WithMany("Projects")
+                        .HasForeignKey("StudentProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StudentProfile");
                 });
 
             modelBuilder.Entity("DijitalKampus.API.Models.Story", b =>
@@ -1078,6 +1318,13 @@ namespace DijitalKampus.API.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DijitalKampus.API.Models.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+
+                    b.Navigation("Participants");
+                });
+
             modelBuilder.Entity("DijitalKampus.API.Models.Department", b =>
                 {
                     b.Navigation("AlumniProfiles");
@@ -1107,6 +1354,13 @@ namespace DijitalKampus.API.Migrations
             modelBuilder.Entity("DijitalKampus.API.Models.Skill", b =>
                 {
                     b.Navigation("UserSkills");
+                });
+
+            modelBuilder.Entity("DijitalKampus.API.Models.StudentProfile", b =>
+                {
+                    b.Navigation("Certificates");
+
+                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("DijitalKampus.API.Models.User", b =>

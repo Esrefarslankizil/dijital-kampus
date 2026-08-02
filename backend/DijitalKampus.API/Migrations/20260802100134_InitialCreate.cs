@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DijitalKampus.API.Migrations
 {
     /// <inheritdoc />
-    public partial class IdentityKurulumu : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,6 +41,14 @@ namespace DijitalKampus.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Role = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AvatarUrl = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CoverUrl = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FirstName = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LastName = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
@@ -96,6 +104,25 @@ namespace DijitalKampus.API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Conversations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    IsGroup = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Title = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    LastMessageAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Conversations", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Departments",
                 columns: table => new
                 {
@@ -141,6 +168,25 @@ namespace DijitalKampus.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Skills", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Trends",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Category = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Topic = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PostCount = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Trends", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -298,6 +344,8 @@ namespace DijitalKampus.API.Migrations
                 {
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CompanyName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Sector = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -327,11 +375,14 @@ namespace DijitalKampus.API.Migrations
                     EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     Location = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    EventType = table.Column<string>(type: "longtext", nullable: false)
+                    EventType = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     MaxParticipants = table.Column<int>(type: "int", nullable: true),
+                    ImagePath = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsApproved = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -339,6 +390,37 @@ namespace DijitalKampus.API.Migrations
                     table.ForeignKey(
                         name: "FK_Events_AspNetUsers_OrganizerId",
                         column: x => x.OrganizerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Groups",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Category = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ImageUrl = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatorId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsApproved = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Groups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Groups_AspNetUsers_CreatorId",
+                        column: x => x.CreatorId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -400,7 +482,13 @@ namespace DijitalKampus.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    MediaPath = table.Column<string>(type: "longtext", nullable: false)
+                    MediaPath = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TextContent = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    BackgroundColor = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TextColor = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ExpiresAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
@@ -441,6 +529,67 @@ namespace DijitalKampus.API.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ConversationParticipants",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ConversationId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    JoinedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    HasMuted = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConversationParticipants", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConversationParticipants_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ConversationParticipants_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Messages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ConversationId = table.Column<int>(type: "int", nullable: false),
+                    SenderId = table.Column<int>(type: "int", nullable: false),
+                    Content = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SentAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    IsRead = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Messages_AspNetUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Messages_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "AlumniProfiles",
                 columns: table => new
                 {
@@ -450,6 +599,8 @@ namespace DijitalKampus.API.Migrations
                     CurrentCompany = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     FieldOfWork = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CurrentPosition = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -475,7 +626,15 @@ namespace DijitalKampus.API.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    DepartmentId = table.Column<int>(type: "int", nullable: false)
+                    DepartmentId = table.Column<int>(type: "int", nullable: false),
+                    Grade = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TargetSector = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TargetPosition = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Biography = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -542,6 +701,36 @@ namespace DijitalKampus.API.Migrations
                         name: "FK_EventAttendances_Events_EventId",
                         column: x => x.EventId,
                         principalTable: "Events",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "GroupMembers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    GroupId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Role = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    JoinedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GroupMembers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_GroupMembers_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GroupMembers_Groups_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -624,6 +813,54 @@ namespace DijitalKampus.API.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "Certificates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    StudentProfileId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Certificates", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Certificates_StudentProfiles_StudentProfileId",
+                        column: x => x.StudentProfileId,
+                        principalTable: "StudentProfiles",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Projects",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    StudentProfileId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Link = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Projects", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Projects_StudentProfiles_StudentProfileId",
+                        column: x => x.StudentProfileId,
+                        principalTable: "StudentProfiles",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
                 name: "IX_AlumniProfiles_DepartmentId",
                 table: "AlumniProfiles",
@@ -678,6 +915,11 @@ namespace DijitalKampus.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Certificates_StudentProfileId",
+                table: "Certificates",
+                column: "StudentProfileId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Comments_PostId",
                 table: "Comments",
                 column: "PostId");
@@ -688,14 +930,65 @@ namespace DijitalKampus.API.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ConversationParticipants_ConversationId",
+                table: "ConversationParticipants",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ConversationParticipants_UserId_ConversationId",
+                table: "ConversationParticipants",
+                columns: new[] { "UserId", "ConversationId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EventAttendances_UserId",
                 table: "EventAttendances",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Events_DeletedAt_EventType_EventDate",
+                table: "Events",
+                columns: new[] { "DeletedAt", "EventType", "EventDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Events_EventDate",
+                table: "Events",
+                column: "EventDate");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Events_OrganizerId",
                 table: "Events",
                 column: "OrganizerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GroupMembers_GroupId",
+                table: "GroupMembers",
+                column: "GroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GroupMembers_UserId",
+                table: "GroupMembers",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Groups_CreatorId",
+                table: "Groups",
+                column: "CreatorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Groups_DeletedAt_Category",
+                table: "Groups",
+                columns: new[] { "DeletedAt", "Category" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Messages_ConversationId_SentAt",
+                table: "Messages",
+                columns: new[] { "ConversationId", "SentAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Messages_SenderId",
+                table: "Messages",
+                column: "SenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_UserId",
@@ -713,9 +1006,19 @@ namespace DijitalKampus.API.Migrations
                 column: "PostId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Posts_DeletedAt_CreatedAt",
+                table: "Posts",
+                columns: new[] { "DeletedAt", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Posts_UserId",
                 table: "Posts",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projects_StudentProfileId",
+                table: "Projects",
+                column: "StudentProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Stories_UserId",
@@ -766,7 +1069,13 @@ namespace DijitalKampus.API.Migrations
                 name: "AuditLogs");
 
             migrationBuilder.DropTable(
+                name: "Certificates");
+
+            migrationBuilder.DropTable(
                 name: "Comments");
+
+            migrationBuilder.DropTable(
+                name: "ConversationParticipants");
 
             migrationBuilder.DropTable(
                 name: "EmployerProfiles");
@@ -778,6 +1087,12 @@ namespace DijitalKampus.API.Migrations
                 name: "Fotograflar");
 
             migrationBuilder.DropTable(
+                name: "GroupMembers");
+
+            migrationBuilder.DropTable(
+                name: "Messages");
+
+            migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
@@ -787,10 +1102,13 @@ namespace DijitalKampus.API.Migrations
                 name: "PostMedias");
 
             migrationBuilder.DropTable(
+                name: "Projects");
+
+            migrationBuilder.DropTable(
                 name: "Stories");
 
             migrationBuilder.DropTable(
-                name: "StudentProfiles");
+                name: "Trends");
 
             migrationBuilder.DropTable(
                 name: "UserFollows");
@@ -805,16 +1123,25 @@ namespace DijitalKampus.API.Migrations
                 name: "Events");
 
             migrationBuilder.DropTable(
+                name: "Groups");
+
+            migrationBuilder.DropTable(
+                name: "Conversations");
+
+            migrationBuilder.DropTable(
                 name: "Posts");
 
             migrationBuilder.DropTable(
-                name: "Departments");
+                name: "StudentProfiles");
 
             migrationBuilder.DropTable(
                 name: "Skills");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Departments");
         }
     }
 }
