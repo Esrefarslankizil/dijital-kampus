@@ -174,7 +174,25 @@ export const adminService = {
 
     getPendingEvents: async () => {
         const response = await authFetch(API_BASE_URL + '/admin/pending-events');
-        if (!response.ok) throw new Error('Etkinlikler yuklenemedi.');
+        if (!response.ok) return [];
+        return await response.json();
+    },
+    
+    getApprovedEvents: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/approved-events');
+        if (!response.ok) return [];
+        return await response.json();
+    },
+
+    getPendingGroups: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/pending-groups');
+        if (!response.ok) return [];
+        return await response.json();
+    },
+    
+    getApprovedGroups: async () => {
+        const response = await authFetch(API_BASE_URL + '/admin/approved-groups');
+        if (!response.ok) return [];
         return await response.json();
     },
 
