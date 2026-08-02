@@ -293,7 +293,10 @@ export default function FeedPage() {
     const getUserIdFromToken = () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) return 1; // Fallback for testing
+            if (!token) return 1;
+            if (token.startsWith('dummy-jwt-token-')) {
+                return parseInt(token.replace('dummy-jwt-token-', '')) || 1;
+            }
             const payload = JSON.parse(atob(token.split('.')[1]));
             return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 1;
         } catch { return 1; }

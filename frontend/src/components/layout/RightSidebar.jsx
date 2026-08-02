@@ -50,7 +50,7 @@ const RightSidebar = ({ followStates = {}, onFollow = () => {}, trendRefreshKey 
                     <p style={{ fontSize: '12px', color: '#888' }}>Yükleniyor...</p>
                 ) : trends.length > 0 ? (
                     trends.map(trend => (
-                        <div key={trend.id} style={styles.trendingItem}>
+                        <div key={trend.topic} style={styles.trendingItem}>
                             <p style={styles.trendingCategory}>{trend.category}</p>
                             <p style={styles.trendingTopic}>{trend.topic}</p>
                             <p style={styles.trendingCount}>{trend.postCount} Gönderi</p>

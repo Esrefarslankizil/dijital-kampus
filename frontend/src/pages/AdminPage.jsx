@@ -16,6 +16,13 @@ export default function AdminPage() {
     const [pendingEvents, setPendingEvents] = useState([]);
     const [pendingGroups, setPendingGroups] = useState([]);
     
+    // Posts filtering
+    const [postSearchTerm, setPostSearchTerm] = useState('');
+    const [postRoleFilter, setPostRoleFilter] = useState('Tümü');
+    
+    // Approvals filtering
+    const [approvalSearchTerm, setApprovalSearchTerm] = useState('');
+    
     // Users filtering and pagination
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('Tümü');
@@ -313,91 +320,228 @@ export default function AdminPage() {
         );
     };
 
-    const renderContent = () => (
-        <div style={styles.card}>
-            <h3 style={styles.sectionTitle}>Gönderi Denetimi</h3>
-            {posts.length === 0 ? <p style={{ color: '#94a3b8' }}>Hiç gönderi yok.</p> : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {posts.map(post => (
-                        <div key={post.id} style={styles.contentItem}>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{ fontWeight: '600', color: '#e2e8f0' }}>{post.author}</span>
-                                    <span style={{ fontSize: '12px', color: '#64748b' }}>{new Date(post.createdAt).toLocaleString('tr-TR')}</span>
-                                </div>
-                                <p style={{ margin: 0, color: '#cbd5e1', fontSize: '14px', lineHeight: '1.6' }}>{post.content}</p>
-                            </div>
-                            <button onClick={() => handleDeletePost(post.id)} style={styles.deleteBtn}>
-                                <i className="feather-trash-2"></i> Sil
-                            </button>
-                        </div>
-                    ))}
+    const renderContent = () => {
+        let filteredPosts = posts.filter(p => {
+            const searchContent = p.content?.toLowerCase() || '';
+            const searchAuthor = p.author?.toLowerCase() || '';
+            const searchEmail = p.authorEmail?.toLowerCase() || '';
+            const term = postSearchTerm.toLowerCase();
+            
+            const matchSearch = searchContent.includes(term) || searchAuthor.includes(term) || searchEmail.includes(term);
+            const matchRole = postRoleFilter === 'Tümü' || p.role === postRoleFilter;
+            
+            return matchSearch && matchRole;
+        });
+
+        return (
+            <div style={styles.card}>
+                <h3 style={styles.sectionTitle}>Gönderi Denetimi</h3>
+                
+                {/* Content Filtering Bar */}
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+                        <i className="feather-search" style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }}></i>
+                        <input 
+                            type="text" 
+                            placeholder="İçerik, yazar adı veya e-posta ile ara..." 
+                            value={postSearchTerm}
+                            onChange={(e) => setPostSearchTerm(e.target.value)}
+                            style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                    <select 
+                        value={postRoleFilter} 
+                        onChange={(e) => setPostRoleFilter(e.target.value)}
+                        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', minWidth: '140px' }}
+                    >
+                        <option value="Tümü">Tüm Roller</option>
+                        <option value="Öğrenci">Öğrenci</option>
+                        <option value="Mezun">Mezun</option>
+                        <option value="Akademisyen">Akademisyen</option>
+                        <option value="Admin">Admin</option>
+                    </select>
                 </div>
-            )}
-        </div>
-    );
 
-    const renderApprovals = () => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={styles.card}>
-                <h3 style={styles.sectionTitle}>Onay Bekleyen Etkinlikler</h3>
-                {pendingEvents.length === 0 ? <p style={{ color: '#94a3b8' }}>Bekleyen etkinlik yok.</p> : (
-                    <table style={styles.table}>
-                        <thead>
-                            <tr>
-                                <th style={styles.th}>Başlık</th>
-                                <th style={styles.th}>Organizatör</th>
-                                <th style={styles.th}>Tarih</th>
-                                <th style={styles.th}>Aksiyon</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {pendingEvents.map(e => (
-                                <tr key={e.id} style={styles.tr}>
-                                    <td style={styles.td}>{e.title}</td>
-                                    <td style={styles.td}>{e.organizer}</td>
-                                    <td style={styles.td}>{new Date(e.createdAt).toLocaleDateString('tr-TR')}</td>
-                                    <td style={styles.td}>
-                                        <button onClick={() => handleApproveEvent(e.id)} style={{ ...styles.actionBtn, backgroundColor: '#10b981', marginRight: '8px' }}>Onayla</button>
-                                        <button onClick={() => handleDeleteEvent(e.id)} style={{ ...styles.actionBtn, backgroundColor: '#ef4444' }}>Reddet</button>
-                                    </td>
+                {filteredPosts.length === 0 ? <p style={{ color: '#94a3b8', textAlign: 'center', padding: '24px' }}>Kriterlere uygun gönderi bulunamadı.</p> : (
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th style={styles.th}>Yazar Bilgisi</th>
+                                    <th style={styles.th}>İçerik Özeti</th>
+                                    <th style={styles.th}>Tarih</th>
+                                    <th style={styles.th}>Medya</th>
+                                    <th style={styles.th}>Aksiyon</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {filteredPosts.map(post => (
+                                    <tr key={post.id} style={styles.tr}>
+                                        <td style={styles.td}>
+                                            <div style={{ fontWeight: '600', color: '#e2e8f0', marginBottom: '4px' }}>{post.author}</div>
+                                            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{post.authorEmail}</div>
+                                            <span style={{ ...styles.roleBadge, backgroundColor: post.role === 'Admin' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: post.role === 'Admin' ? '#c4b5fd' : '#93c5fd', fontSize: '10px', padding: '2px 8px' }}>
+                                                {post.role || 'Bilinmiyor'}
+                                            </span>
+                                        </td>
+                                        <td style={styles.td}>
+                                            <p style={{ margin: 0, color: '#cbd5e1', fontSize: '13px', lineHeight: '1.5', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                                {post.content || <span style={{color: '#64748b', fontStyle: 'italic'}}>İçerik yok (sadece medya olabilir)</span>}
+                                            </p>
+                                        </td>
+                                        <td style={styles.td}>
+                                            <div style={{ fontSize: '13px' }}>{new Date(post.createdAt).toLocaleDateString('tr-TR')}</div>
+                                            <div style={{ fontSize: '11px', color: '#64748b' }}>{new Date(post.createdAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}</div>
+                                        </td>
+                                        <td style={styles.td}>
+                                            {post.mediaCount > 0 ? (
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#fbbf24', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
+                                                    <i className="feather-image"></i> {post.mediaCount}
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: '#64748b', fontSize: '12px' }}>Yok</span>
+                                            )}
+                                        </td>
+                                        <td style={styles.td}>
+                                            <button onClick={() => handleDeletePost(post.id)} style={{ ...styles.actionBtn, backgroundColor: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <i className="feather-trash-2"></i> Sil
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
+        );
+    };
 
-            <div style={styles.card}>
-                <h3 style={styles.sectionTitle}>Onay Bekleyen Gruplar</h3>
-                {pendingGroups.length === 0 ? <p style={{ color: '#94a3b8' }}>Bekleyen grup yok.</p> : (
-                    <table style={styles.table}>
-                        <thead>
-                            <tr>
-                                <th style={styles.th}>Grup Adı</th>
-                                <th style={styles.th}>Kurucu</th>
-                                <th style={styles.th}>Tarih</th>
-                                <th style={styles.th}>Aksiyon</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {pendingGroups.map(g => (
-                                <tr key={g.id} style={styles.tr}>
-                                    <td style={styles.td}>{g.name}</td>
-                                    <td style={styles.td}>{g.creator}</td>
-                                    <td style={styles.td}>{new Date(g.createdAt).toLocaleDateString('tr-TR')}</td>
-                                    <td style={styles.td}>
-                                        <button onClick={() => handleApproveGroup(g.id)} style={{ ...styles.actionBtn, backgroundColor: '#10b981', marginRight: '8px' }}>Onayla</button>
-                                        <button onClick={() => handleDeleteGroup(g.id)} style={{ ...styles.actionBtn, backgroundColor: '#ef4444' }}>Reddet</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+    const renderApprovals = () => {
+        const filteredEvents = pendingEvents.filter(e => {
+            const term = approvalSearchTerm.toLowerCase();
+            return (e.title?.toLowerCase().includes(term) || e.organizer?.toLowerCase().includes(term) || e.organizerEmail?.toLowerCase().includes(term));
+        });
+
+        const filteredGroups = pendingGroups.filter(g => {
+            const term = approvalSearchTerm.toLowerCase();
+            return (g.name?.toLowerCase().includes(term) || g.creator?.toLowerCase().includes(term) || g.creatorEmail?.toLowerCase().includes(term));
+        });
+
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={styles.card}>
+                    <h3 style={styles.sectionTitle}>Bekleyen Onaylar</h3>
+                    <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                        <div style={{ flex: 1, position: 'relative' }}>
+                            <i className="feather-search" style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }}></i>
+                            <input 
+                                type="text" 
+                                placeholder="Etkinlik, grup adı veya kurucu ile ara..." 
+                                value={approvalSearchTerm}
+                                onChange={(e) => setApprovalSearchTerm(e.target.value)}
+                                style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div style={styles.card}>
+                    <h3 style={styles.sectionTitle}>Onay Bekleyen Etkinlikler</h3>
+                    {filteredEvents.length === 0 ? <p style={{ color: '#94a3b8', textAlign: 'center', padding: '16px' }}>Bekleyen veya kriterlere uyan etkinlik yok.</p> : (
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th style={styles.th}>Organizatör Bilgisi</th>
+                                        <th style={styles.th}>Etkinlik Detayları</th>
+                                        <th style={styles.th}>Tarih</th>
+                                        <th style={styles.th}>Aksiyon</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredEvents.map(e => (
+                                        <tr key={e.id} style={styles.tr}>
+                                            <td style={styles.td}>
+                                                <div style={{ fontWeight: '600', color: '#e2e8f0', marginBottom: '4px' }}>{e.organizer}</div>
+                                                <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{e.organizerEmail}</div>
+                                                <span style={{ ...styles.roleBadge, backgroundColor: e.role === 'Admin' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: e.role === 'Admin' ? '#c4b5fd' : '#93c5fd', fontSize: '10px', padding: '2px 8px' }}>
+                                                    {e.role || 'Bilinmiyor'}
+                                                </span>
+                                            </td>
+                                            <td style={styles.td}>
+                                                <p style={{ margin: '0 0 4px 0', color: '#fff', fontWeight: 600, fontSize: '14px' }}>{e.title}</p>
+                                                <p style={{ margin: 0, color: '#cbd5e1', fontSize: '13px', lineHeight: '1.5', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                                    {e.description || <span style={{color: '#64748b', fontStyle: 'italic'}}>Açıklama yok</span>}
+                                                </p>
+                                            </td>
+                                            <td style={styles.td}>
+                                                <div style={{ fontSize: '13px' }}>{new Date(e.createdAt).toLocaleDateString('tr-TR')}</div>
+                                                <div style={{ fontSize: '11px', color: '#64748b' }}>{new Date(e.createdAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}</div>
+                                            </td>
+                                            <td style={styles.td}>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button onClick={() => handleApproveEvent(e.id)} style={{ ...styles.actionBtn, backgroundColor: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}><i className="feather-check"></i> Onayla</button>
+                                                    <button onClick={() => handleDeleteEvent(e.id)} style={{ ...styles.actionBtn, backgroundColor: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px' }}><i className="feather-x"></i> Reddet</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+
+                <div style={styles.card}>
+                    <h3 style={styles.sectionTitle}>Onay Bekleyen Gruplar</h3>
+                    {filteredGroups.length === 0 ? <p style={{ color: '#94a3b8', textAlign: 'center', padding: '16px' }}>Bekleyen veya kriterlere uyan grup yok.</p> : (
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th style={styles.th}>Kurucu Bilgisi</th>
+                                        <th style={styles.th}>Grup Detayları</th>
+                                        <th style={styles.th}>Tarih</th>
+                                        <th style={styles.th}>Aksiyon</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredGroups.map(g => (
+                                        <tr key={g.id} style={styles.tr}>
+                                            <td style={styles.td}>
+                                                <div style={{ fontWeight: '600', color: '#e2e8f0', marginBottom: '4px' }}>{g.creator}</div>
+                                                <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{g.creatorEmail}</div>
+                                                <span style={{ ...styles.roleBadge, backgroundColor: g.role === 'Admin' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: g.role === 'Admin' ? '#c4b5fd' : '#93c5fd', fontSize: '10px', padding: '2px 8px' }}>
+                                                    {g.role || 'Bilinmiyor'}
+                                                </span>
+                                            </td>
+                                            <td style={styles.td}>
+                                                <p style={{ margin: '0 0 4px 0', color: '#fff', fontWeight: 600, fontSize: '14px' }}>{g.name}</p>
+                                                <p style={{ margin: 0, color: '#cbd5e1', fontSize: '13px', lineHeight: '1.5', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                                    {g.description || <span style={{color: '#64748b', fontStyle: 'italic'}}>Açıklama yok</span>}
+                                                </p>
+                                            </td>
+                                            <td style={styles.td}>
+                                                <div style={{ fontSize: '13px' }}>{new Date(g.createdAt).toLocaleDateString('tr-TR')}</div>
+                                                <div style={{ fontSize: '11px', color: '#64748b' }}>{new Date(g.createdAt).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}</div>
+                                            </td>
+                                            <td style={styles.td}>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button onClick={() => handleApproveGroup(g.id)} style={{ ...styles.actionBtn, backgroundColor: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}><i className="feather-check"></i> Onayla</button>
+                                                    <button onClick={() => handleDeleteGroup(g.id)} style={{ ...styles.actionBtn, backgroundColor: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px' }}><i className="feather-x"></i> Reddet</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderLogs = () => (
         <div style={styles.card}>
