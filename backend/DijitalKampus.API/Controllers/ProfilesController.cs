@@ -87,28 +87,38 @@ namespace DijitalKampus.API.Controllers
 
             if (existing == null)
             {
-                // Profil yok → Yeni kayıt oluştur (Upsert)
-                // DepartmentId gönderilmediyse veya 0 ise, geçerli bir varsayılan kullan
-                if (updatedProfile.DepartmentId <= 0)
+                // 🚀 DÜZELTİLEN KISIM BURASI 🚀
+                // Veritabanında hiç bölüm yoksa önce garanti olsun diye genel bir bölüm oluştur
+                var firstDept = await _context.Departments.FirstOrDefaultAsync();
+                if (firstDept == null)
                 {
-                    var firstDept = await _context.Departments.OrderBy(d => d.Id).FirstOrDefaultAsync();
-                    updatedProfile.DepartmentId = firstDept?.Id ?? 1;
+                    firstDept = new Department { Name = "Genel Bölüm" };
+                    _context.Departments.Add(firstDept);
+                    await _context.SaveChangesAsync(); 
                 }
-                _context.StudentProfiles.Add(updatedProfile);
+
+                // Frontend'den gelen kirli objeyi (updatedProfile) değil, 
+                // SADECE ihtiyacımız olan alanları alıp tertemiz yeni bir profil oluşturuyoruz!
+                var safeNewProfile = new StudentProfile
+                {
+                    UserId = id,
+                    Biography = updatedProfile.Biography,
+                    Grade = updatedProfile.Grade,
+                    TargetPosition = updatedProfile.TargetPosition,
+                    TargetSector = updatedProfile.TargetSector,
+                    DepartmentId = updatedProfile.DepartmentId > 0 ? updatedProfile.DepartmentId : firstDept.Id
+                };
+
+                _context.StudentProfiles.Add(safeNewProfile);
             }
             else
             {
-                // Profil var → Sadece güncellenebilir alanları uygula
-                if (updatedProfile.Biography != null)
-                    existing.Biography = updatedProfile.Biography;
-                if (updatedProfile.Grade != null)
-                    existing.Grade = updatedProfile.Grade;
-                if (updatedProfile.TargetSector != null)
-                    existing.TargetSector = updatedProfile.TargetSector;
-                if (updatedProfile.TargetPosition != null)
-                    existing.TargetPosition = updatedProfile.TargetPosition;
-                if (updatedProfile.DepartmentId > 0)
-                    existing.DepartmentId = updatedProfile.DepartmentId;
+                // Profil zaten varsa sadece izin verilen alanları güncelle
+                if (updatedProfile.Biography != null) existing.Biography = updatedProfile.Biography;
+                if (updatedProfile.Grade != null) existing.Grade = updatedProfile.Grade;
+                if (updatedProfile.TargetSector != null) existing.TargetSector = updatedProfile.TargetSector;
+                if (updatedProfile.TargetPosition != null) existing.TargetPosition = updatedProfile.TargetPosition;
+                if (updatedProfile.DepartmentId > 0) existing.DepartmentId = updatedProfile.DepartmentId;
             }
 
             await _context.SaveChangesAsync();
