@@ -44,7 +44,8 @@ public class AuthController : ControllerBase
         { 
             token = "dummy-jwt-token-" + user.Id, 
             role = user.Role, 
-            email = user.Email 
+            email = user.Email,
+            avatarUrl = user.AvatarUrl
         });
     }
 

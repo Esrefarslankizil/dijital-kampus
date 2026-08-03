@@ -101,7 +101,8 @@ namespace DijitalKampus.API.Controllers
                         backgroundColor = s.BackgroundColor,
                         textColor = s.TextColor,
                         createdAt = s.CreatedAt,
-                        userName = s.User != null ? s.User.Email : "Bilinmiyor"
+                        userName = s.User != null ? (string.IsNullOrEmpty(s.User.FirstName) ? s.User.Email : s.User.FirstName + " " + s.User.LastName) : "Bilinmiyor",
+                        avatarUrl = s.User != null ? s.User.AvatarUrl : null
                     })
                     .ToListAsync();
 
@@ -111,6 +112,19 @@ namespace DijitalKampus.API.Controllers
             {
                 return StatusCode(500, $"Hikayeler getirilirken hata oluştu: {ex.Message}");
             }
+        }
+
+        // DELETE: api/story/{id}?userId=X
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteStory(int id, [FromQuery] int userId)
+        {
+            var story = await _context.Stories.FindAsync(id);
+            if (story == null) return NotFound(new { message = "Hikaye bulunamadı." });
+            if (story.UserId != userId) return StatusCode(403, new { message = "Bu hikayeyi silme yetkiniz yok." });
+
+            _context.Stories.Remove(story);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Hikaye başarıyla silindi." });
         }
     }
 }
