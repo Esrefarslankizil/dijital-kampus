@@ -36,7 +36,10 @@ const LeftSidebar = ({ userEmail, userRole, stats, activeMenu = 'feed' }) => {
             .then(r => r.ok ? r.json() : null)
             .then(data => {
                 if (!data) return;
-                if (data.avatarUrl) setAvatarUrl(`http://localhost:5181${data.avatarUrl}`);
+                if (data.avatarUrl) {
+                    setAvatarUrl(`http://localhost:5181${data.avatarUrl}`);
+                    localStorage.setItem('avatarUrl', data.avatarUrl);
+                }
                 if (data.displayName) setDisplayName(data.displayName);
                 else if (data.firstName) setDisplayName(`${data.firstName} ${data.lastName || ''}`.trim());
                 

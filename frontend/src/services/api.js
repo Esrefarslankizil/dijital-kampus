@@ -47,22 +47,45 @@ export const authService = {
 
 // Posts
 export const postService = {
-    getPosts: async () => {
-        const response = await authFetch(API_BASE_URL + '/posts');
+    getPosts: async (userId = 0) => {
+        const url = userId > 0 ? `${API_BASE_URL}/posts?userId=${userId}` : `${API_BASE_URL}/posts`;
+        const response = await authFetch(url);
         if (!response.ok) throw new Error('Gonderiler yuklenemedi.');
         return await response.json();
     },
 
-    createPost: async (userId, content) => {
+    createPost: async (userId, content, mediaUrl = null) => {
         const response = await authFetch(API_BASE_URL + '/posts', {
             method: 'POST',
-            body: JSON.stringify({ userId: userId, content: content }),
+            body: JSON.stringify({ userId: userId, content: content, mediaUrl: mediaUrl }),
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
             throw new Error(err.message || 'Gonderi paylasilamadi.');
         }
         return await response.json();
+    },
+
+    uploadPostImage: async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const token = localStorage.getItem('token');
+        const response = await fetch(API_BASE_URL + '/posts/upload-image', {
+            method: 'POST',
+            headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+            body: formData,
+        });
+        if (!response.ok) throw new Error('Resim yuklenemedi.');
+        return await response.json(); // { url: '/uploads/posts/...' }
+    },
+
+    likePost: async (postId, userId) => {
+        const response = await authFetch(API_BASE_URL + '/posts/' + postId + '/like', {
+            method: 'POST',
+            body: JSON.stringify({ userId: userId }),
+        });
+        if (!response.ok) throw new Error('Begeni islemi basarisiz.');
+        return await response.json(); // { liked: true/false, likeCount: N }
     },
 
     getComments: async (postId) => {
@@ -139,6 +162,14 @@ export const storyService = {
             }
         });
         if (!response.ok) throw new Error('Hikaye yuklenemedi.');
+        return await response.json();
+    },
+
+    deleteStory: async (storyId, userId) => {
+        const response = await authFetch(`${API_BASE_URL}/story/${storyId}?userId=${userId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Hikaye silinemedi.');
         return await response.json();
     }
 };

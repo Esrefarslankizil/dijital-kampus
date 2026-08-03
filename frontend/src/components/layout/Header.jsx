@@ -263,7 +263,7 @@ function Header({ onOpenLogin, onOpenRegister }) {
                 {/* PROFIL AVATARI VE SIFIRLANMIŞ EŞİT MENÜ */}
                 <div className="d-none d-md-block ms-1" style={{ position: 'relative' }}>
                     <img 
-                        src="/images/user-7.png" 
+                        src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `http://localhost:5181${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} 
                         alt="profil" 
                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                         style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mtu-primary)', cursor: 'pointer' }} 

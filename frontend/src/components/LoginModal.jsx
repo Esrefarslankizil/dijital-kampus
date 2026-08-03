@@ -38,13 +38,17 @@ function LoginModal({ isOpen, onClose }) {
       setLoading(true);
       setError('');
       try {
-          // Geliştirme aşamasında backend hazır olana kadar Mock Login yapıyoruz
-          // const data = await authService.login(email, password);
+          const result = await authService.login(email, password);
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('role', result.role);
+          localStorage.setItem('email', result.email);
+          if (result.avatarUrl) {
+              localStorage.setItem('avatarUrl', result.avatarUrl);
+          } else {
+              localStorage.removeItem('avatarUrl');
+          }
           
-          // Gerçekçi görünmesi için 800ms bekletiyoruz
-          await new Promise(resolve => setTimeout(resolve, 800));
-          
-          console.log("Mock Login successful, navigating to feed...");
+          console.log("Login successful, navigating to feed...");
           onClose(); // Modalı kapat
           navigate('/feed'); // Akış sayfasına yönlendir
       } catch (err) {

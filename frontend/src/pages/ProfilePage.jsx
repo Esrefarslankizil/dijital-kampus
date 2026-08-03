@@ -73,12 +73,14 @@ export default function ProfilePage() {
     const [cropperSrc, setCropperSrc] = useState(null); // data URL
     const [cropperMode, setCropperMode] = useState('avatar'); // 'avatar' | 'cover'
 
-    useEffect(() => { loadProfile(); /* eslint-disable-next-line */ }, [id]);
+    useEffect(() => { loadProfile(); /* eslint-disable-next-line */ }, [id, currentUserId]);
 
     const loadProfile = async () => {
         setLoading(true);
         try {
-            const data = await profileService.getProfile(id);
+            const targetId = id || currentUserId;
+            if (!targetId) return;
+            const data = await profileService.getProfile(targetId);
             setProfile(data);
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
@@ -136,6 +138,9 @@ export default function ProfilePage() {
             try {
                 const result = await profileService.uploadAvatar(currentUserId, file);
                 setProfile(prev => ({ ...prev, avatarUrl: result.avatarUrl }));
+                if (result.avatarUrl) {
+                    localStorage.setItem('avatarUrl', result.avatarUrl);
+                }
             } catch (err) { console.error(err); }
             finally { setAvatarUploading(false); }
         } else {
@@ -153,6 +158,7 @@ export default function ProfilePage() {
         try {
             await profileService.removeAvatar(currentUserId);
             setProfile(prev => ({ ...prev, avatarUrl: null }));
+            localStorage.removeItem('avatarUrl');
         } catch (err) { console.error(err); }
     };
 

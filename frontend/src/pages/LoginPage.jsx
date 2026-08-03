@@ -37,10 +37,14 @@ function LoginPage() {
       setError('');
       try {
           const result = await authService.login(email, password);
-          // JWT token'ı localStorage'a kaydet
           localStorage.setItem('token', result.token);
           localStorage.setItem('role', result.role);
           localStorage.setItem('email', result.email);
+          if (result.avatarUrl) {
+              localStorage.setItem('avatarUrl', result.avatarUrl);
+          } else {
+              localStorage.removeItem('avatarUrl');
+          }
           navigate('/feed');
       } catch (err) {
           setError('E-posta veya şifre hatalı. Lütfen tekrar deneyin.');
