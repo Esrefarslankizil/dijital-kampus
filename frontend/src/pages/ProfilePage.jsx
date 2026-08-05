@@ -39,12 +39,30 @@ export default function ProfilePage() {
     const getUserIdFromToken = () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) return 0;
-            if (token.startsWith('dummy-jwt-token-'))
+            const storedId = localStorage.getItem('userId') || localStorage.getItem('id');
+
+            if (!token) return parseInt(storedId) || 0;
+
+            if (token.startsWith('dummy-jwt-token-')) {
                 return parseInt(token.replace('dummy-jwt-token-', '')) || 0;
+            }
+
             const payload = JSON.parse(atob(token.split('.')[1]));
-            return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 0;
-        } catch { return 0; }
+
+            // 🚀 SUNUM HACK'İ: JWT içindeki tüm olası ID isimlerini yakalıyoruz!
+            const userId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']
+                || payload.nameid
+                || payload.nameId
+                || payload.id
+                || payload.Id
+                || payload.userId
+                || payload.UserId
+                || payload.sub;
+
+            return parseInt(userId) || parseInt(storedId) || 0;
+        } catch {
+            return parseInt(localStorage.getItem('userId') || localStorage.getItem('id')) || 0;
+        }
     };
 
     const currentUserId = getUserIdFromToken();
@@ -83,8 +101,8 @@ export default function ProfilePage() {
     const coverInputRef = useRef(null);
 
     // Cropper
-    const [cropperSrc, setCropperSrc] = useState(null); 
-    const [cropperMode, setCropperMode] = useState('avatar'); 
+    const [cropperSrc, setCropperSrc] = useState(null);
+    const [cropperMode, setCropperMode] = useState('avatar');
 
     useEffect(() => { loadProfile(); /* eslint-disable-next-line */ }, [id]);
 
@@ -93,7 +111,7 @@ export default function ProfilePage() {
         try {
             const targetId = parseInt(id) || currentUserId;
             const data = await profileService.getProfile(targetId);
-            
+
             // Projeler ve sertifikalar (Student Profile) için ek istek
             try {
                 const studentProfileRes = await axios.get(`${API_BASE}/api/profiles/${targetId}`);
@@ -142,7 +160,7 @@ export default function ProfilePage() {
                 [result.firstName, result.lastName].filter(Boolean).join(' ').trim() ||
                 result.userName || editUserName.trim();
             if (result.firstName) localStorage.setItem('firstName', result.firstName);
-            if (result.lastName)  localStorage.setItem('lastName',  result.lastName);
+            if (result.lastName) localStorage.setItem('lastName', result.lastName);
             localStorage.setItem('displayName', newDisplayName);
 
             // Header bileşenini uyarı için storage event tetikle
@@ -153,7 +171,7 @@ export default function ProfilePage() {
 
     const handleDeleteProfilePost = async (postId) => {
         if (!window.confirm("Bu gönderiyi silmek istediğinize emin misiniz?")) return;
-        
+
         try {
             await postService.deletePost(postId);
             setProfile(prev => ({
@@ -306,7 +324,11 @@ export default function ProfilePage() {
 
     const targetProfileId = parseInt(id) || currentUserId;
     const isMe = currentUserId > 0 && targetProfileId === currentUserId;
-    const displayName = profile.displayName || profile.userName || profile.email || 'Kullanıcı';
+    // Önce gerçek ad soyad var mı bak, yoksa kayıtta hafızaya aldığımız adı göster.
+    const localName = localStorage.getItem('displayName');
+    const displayName = (profile.firstName || profile.lastName)
+        ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+        : (localName || profile.displayName || profile.userName || profile.email || 'Kullanıcı');
     const avatarSrc = toAbsoluteUrl(profile.avatarUrl);
     const coverSrc = toAbsoluteUrl(profile.coverUrl);
 
@@ -388,9 +410,9 @@ export default function ProfilePage() {
                             ) : (
                                 <>
                                     <button className="pbtn"
-                                        style={{ 
-                                            ...S.btn, 
-                                            ...(profile.isFollowing ? S.btnSecondary : S.btnPrimary), 
+                                        style={{
+                                            ...S.btn,
+                                            ...(profile.isFollowing ? S.btnSecondary : S.btnPrimary),
                                             width: '160px', padding: '10px 0'
                                         }}
                                         onClick={handleFollowToggle}>
@@ -414,7 +436,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* ===== SEKME İÇERİKLERİ ===== */}
-                
+
                 {/* 1. GENEL GÖNDERİLER SEKMESİ */}
                 {activeTab === 'gonderiler' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -436,7 +458,7 @@ export default function ProfilePage() {
                 {/* 2. HAKKINDA (SENİN PORTFOLYO) SEKMESİ */}
                 {activeTab === 'hakkinda' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginTop: 10 }}>
-                        
+
                         {/* BİYOGRAFİ KARTI */}
                         <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #eef2f6' }}>
                             <h3 style={{ color: '#333', fontSize: '18px', marginBottom: '16px' }}>Biyografi</h3>
@@ -456,7 +478,7 @@ export default function ProfilePage() {
                                         {userBio || 'Henüz bir biyografi eklenmemiş.'}
                                     </p>
                                     {isMe && (
-                                        <button onClick={() => { setIsEditingBio(true); setNewBio(userBio || ''); }} 
+                                        <button onClick={() => { setIsEditingBio(true); setNewBio(userBio || ''); }}
                                             style={{ backgroundColor: '#e6f4f5', color: '#006F79', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                                             Düzenle
                                         </button>
@@ -485,9 +507,9 @@ export default function ProfilePage() {
                             )}
                             {isMe && (showProjectForm ? (
                                 <div style={{ marginTop: '20px', padding: '16px', border: '1px dashed #cbd5e1', borderRadius: '12px', backgroundColor: '#fafafa' }}>
-                                    <input type="text" placeholder="Proje Adı" value={newProject.title} onChange={(e) => setNewProject({...newProject, title: e.target.value})} style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ccc' }} />
-                                    <input type="text" placeholder="Proje Linki (Github vb.)" value={newProject.link} onChange={(e) => setNewProject({...newProject, link: e.target.value})} style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ccc' }} />
-                                    <textarea placeholder="Proje Açıklaması" value={newProject.description} onChange={(e) => setNewProject({...newProject, description: e.target.value})} style={{ width: '100%', padding: '10px', marginBottom: '12px', borderRadius: '8px', border: '1px solid #ccc', minHeight: '60px' }} />
+                                    <input type="text" placeholder="Proje Adı" value={newProject.title} onChange={(e) => setNewProject({ ...newProject, title: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ccc' }} />
+                                    <input type="text" placeholder="Proje Linki (Github vb.)" value={newProject.link} onChange={(e) => setNewProject({ ...newProject, link: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ccc' }} />
+                                    <textarea placeholder="Proje Açıklaması" value={newProject.description} onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '12px', borderRadius: '8px', border: '1px solid #ccc', minHeight: '60px' }} />
                                     <button onClick={handleAddProject} style={{ backgroundColor: '#006F79', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px' }}>Ekle</button>
                                     <button onClick={() => setShowProjectForm(false)} style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 20px', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}>İptal</button>
                                 </div>

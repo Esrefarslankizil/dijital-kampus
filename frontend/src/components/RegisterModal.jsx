@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom'; // 🚀 1. Yönlendirme kancasını ekledik
 
 // ASP.NET Core Backend adresiniz
 const API_BASE = 'http://localhost:5181'; 
@@ -12,13 +13,15 @@ function RegisterModal({ isOpen, onClose }) {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    
+    const navigate = useNavigate(); // 🚀 2. Navigate objesini oluşturduk
 
     if (!isOpen) return null;
 
     // Kayıt ol butonuna basıldığında çalışacak fonksiyon
     const handleRegister = async (e) => {
         e.preventDefault(); // Sayfanın yenilenmesini engeller
-
+        localStorage.clear(); // 🚀 Eski hesaptan kalan ne varsa kökten siler!
         // Temel doğrulamalar (Validation)
         if (!name.trim() || !email.trim() || !password) {
             toast.error('Lütfen tüm alanları doldurun!');
@@ -35,7 +38,7 @@ function RegisterModal({ isOpen, onClose }) {
 
         setLoading(true);
         try {
-            // Backend'in beklediği DTO formatı (Bunu C# tarafındaki RegisterDto modelinize göre güncelleyebilirsin)
+            // Backend'in beklediği DTO formatı
             const payload = {
                 UserName: name,
                 Email: email,
@@ -43,16 +46,28 @@ function RegisterModal({ isOpen, onClose }) {
             };
 
             // Backend API'sine POST isteği atıyoruz
-            const response = await axios.post(`${API_BASE}/api/auth/register`, payload);
+           // Backend API'sine POST isteği atıyoruz
+    const response = await axios.post(`${API_BASE}/api/auth/register`, payload);
+
+    toast.success('Kayıt başarılı! Giriş yapılıyor... 🚀');
+
+    // Kayıttan hemen sonra arka planda otomatik LOGIN atıp token'ı alıyoruz:
+    try {
+        const loginRes = await authService.login(email, password);
+        if (loginRes.token) {
+            localStorage.setItem('token', loginRes.token);
+            localStorage.setItem('role', loginRes.role);
+            localStorage.setItem('email', loginRes.email);
+            localStorage.setItem('displayName', name);
             
-            toast.success('Kayıt başarılı! Aramıza hoş geldin! 🎉');
-            
-            // İşlem bitince formu temizle ve modalı kapat
-            setName('');
-            setEmail('');
-            setPassword('');
-            setConfirmPassword('');
-            onClose();
+            // Onboarding veya Feed sayfasına tam yenilemeyle gönderiyoruz
+            window.location.href = '/feed';
+            return;
+        }
+    } catch (loginErr) {
+        // Eğer oto-login olmazsa kullanıcıyı login sayfasına yönlendiririz
+        window.location.href = '/login';
+    }
 
         } catch (error) {
             console.error('Kayıt hatası:', error);

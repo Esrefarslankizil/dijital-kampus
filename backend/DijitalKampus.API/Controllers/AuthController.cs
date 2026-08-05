@@ -57,7 +57,7 @@ public class AuthController : ControllerBase
         // 1. Yeni bir kullanıcı profili hazırlıyoruz
         var newUser = new User
         {
-            UserName = request.Email, 
+            UserName = request.UserName, 
             Email = request.Email,
             Role = "Student", 
             CreatedAt = DateTime.UtcNow,
@@ -109,5 +109,6 @@ public class LoginRequest
 public class RegisterRequest
 {
     public string Email { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }

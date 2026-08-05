@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { profileService } from '../../services/api';
 
 const LeftSidebar = ({ userEmail, userRole, stats, activeMenu = 'feed' }) => {
     const getUserIdFromToken = () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) return 0;
-            if (token.startsWith('dummy-jwt-token-')) {
-                return parseInt(token.replace('dummy-jwt-token-', '')) || 0;
-            }
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 0;
-        } catch { return 0; }
-    };
-    const currentUserId = getUserIdFromToken();
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return 0;
+        if (token.startsWith('dummy-jwt-token-')) {
+            return parseInt(token.replace('dummy-jwt-token-', '')) || 0;
+        }
+        
+        // Token'ı çözüyoruz
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        // Token içindeki tüm veriyi konsola yazdır (sorun olursa direkt buradan bakarız)
+        console.log("Token İçeriği:", payload);
+
+        // Backend'in ID'yi hangi isimle gizlediğini bilmediğimiz için tüm ihtimalleri yakalıyoruz:
+        const extractedId = payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] 
+                         || payload['nameid'] 
+                         || payload['sub'] 
+                         || payload['id'] 
+                         || payload['UserId']
+                         || payload['userId'];
+                         
+        return parseInt(extractedId) || 0;
+    } catch (error) { 
+        console.error("Token çözülürken hata:", error);
+        return 0; 
+    }
+};
+const currentUserId = getUserIdFromToken();
 
     const navItems = [
         { id: 'feed', icon: 'feather-home', label: 'Ana Akış', path: '/feed' },
@@ -24,36 +42,53 @@ const LeftSidebar = ({ userEmail, userRole, stats, activeMenu = 'feed' }) => {
     ];
 
     const [avatarUrl, setAvatarUrl] = useState(null);
-    const [displayName, setDisplayName] = useState(userEmail?.split('@')[0] || '?');
+    const [displayName, setDisplayName] = useState(localStorage.getItem('displayName') || userEmail?.split('@')[0] || 'Kullanıcı');
     const [userStats, setUserStats] = useState({ followers: 0, following: 0, posts: 0 });
 
     useEffect(() => {
         if (!currentUserId) return;
-        const token = localStorage.getItem('token');
-        fetch(`http://localhost:5181/api/profile/${currentUserId}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-        })
-            .then(r => r.ok ? r.json() : null)
-            .then(data => {
+
+        const fetchSidebarData = async () => {
+            try {
+                const data = await profileService.getProfile(currentUserId);
                 if (!data) return;
+
                 if (data.avatarUrl) setAvatarUrl(`http://localhost:5181${data.avatarUrl}`);
+
+                const localName = localStorage.getItem('displayName');
                 if (data.displayName) setDisplayName(data.displayName);
                 else if (data.firstName) setDisplayName(`${data.firstName} ${data.lastName || ''}`.trim());
-                
+                else if (localName) setDisplayName(localName);
+
                 setUserStats({
                     followers: data.followersCount || 0,
                     following: data.followingCount || 0,
                     posts: data.posts?.length || 0
                 });
-            })
-            .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+            } catch (error) {
+                console.error("Sol menü veri çekme hatası:", error);
+            }
+        };
+
+        fetchSidebarData();
+
+        // 🚀 YENİ EKLENEN KISIM: Başka sayfadan post atıldığında sinyali yakala ve anında 1 artır!
+        const handleNewPost = () => {
+            setUserStats(prev => ({ ...prev, posts: prev.posts + 1 }));
+        };
+        window.addEventListener('postCreated', handleNewPost);
+
+        // Bileşen ekrandan gidince dinlemeyi bırak (Performans için)
+        return () => window.removeEventListener('postCreated', handleNewPost);
+
     }, [currentUserId]);
 
     const initial = displayName.charAt(0).toUpperCase();
-    const activeFollowers = stats?.followers !== undefined ? stats.followers : userStats.followers;
-    const activeFollowing = stats?.following !== undefined ? stats.following : userStats.following;
-    const activePosts = stats?.posts !== undefined ? stats.posts : userStats.posts;
+
+    // 🚀 3. Eğer üst sayfadan zorla 0 gönderiliyorsa onu ez, bizim API'den çektiğimiz gerçek sayıyı göster!
+    const activeFollowers = userStats.followers > 0 ? userStats.followers : (stats?.followers || 0);
+    const activeFollowing = userStats.following > 0 ? userStats.following : (stats?.following || 0);
+    const activePosts = userStats.posts > 0 ? userStats.posts : (stats?.posts || 0);
 
     return (
         <aside style={styles.leftSidebar}>
@@ -126,9 +161,9 @@ const LeftSidebar = ({ userEmail, userRole, stats, activeMenu = 'feed' }) => {
                 {navItems.map((item) => {
                     const isActive = activeMenu === item.id;
                     return (
-                        <Link 
-                            key={item.id} 
-                            to={item.path} 
+                        <Link
+                            key={item.id}
+                            to={item.path}
                             className={`nav-item-link ${isActive ? 'active-item' : ''}`}
                         >
                             <i className={`nav-icon ${item.icon}`} style={{ width: '20px', marginRight: '12px', fontSize: '18px', color: isActive ? '#ffffff' : '#999', transition: 'color 0.2s' }}></i>
@@ -138,15 +173,15 @@ const LeftSidebar = ({ userEmail, userRole, stats, activeMenu = 'feed' }) => {
                     );
                 })}
                 {userRole === 'Admin' && (
-                    <Link to="/admin" className="nav-item-link" style={{marginTop: '8px', backgroundColor: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c'}}>
-                        <i className="nav-icon feather-shield" style={{width: '20px', marginRight: '12px', fontSize: '18px', color: '#e74c3c'}}></i><span style={{fontWeight: 700}}>Yönetici Paneli</span>
+                    <Link to="/admin" className="nav-item-link" style={{ marginTop: '8px', backgroundColor: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c' }}>
+                        <i className="nav-icon feather-shield" style={{ width: '20px', marginRight: '12px', fontSize: '18px', color: '#e74c3c' }}></i><span style={{ fontWeight: 700 }}>Yönetici Paneli</span>
                     </Link>
                 )}
                 <div style={{ borderTop: '1px solid #f0f2f5', margin: '8px 0' }}></div>
-                <Link to="/login" className="nav-item-link" onClick={() => localStorage.clear()}>
-                    <i className="nav-icon feather-log-out" style={{ width: '20px', marginRight: '12px', fontSize: '18px', color: '#e74c3c' }}></i>
+                <a href="/login" className="nav-item-link" onClick={() => localStorage.clear()}>
+                    <i className="nav-icon feather-log-out" style={{ width: '20px', marginRight: '12px', fontSize: '18px' }}></i>
                     <span style={{ color: '#e74c3c' }}>Çıkış Yap</span>
-                </Link>
+                </a>
             </div>
 
             <div style={{ ...styles.navCard, marginTop: '12px' }}>
