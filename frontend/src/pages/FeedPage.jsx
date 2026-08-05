@@ -40,120 +40,120 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
 
     return (
         <>
-        {showCreateModal && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ margin: 0, color: '#006F79' }}>Hikaye Oluştur</h3>
-                        <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>&times;</button>
-                    </div>
-                    <div style={{ height: '300px', borderRadius: '12px', backgroundColor: storyImage ? 'transparent' : storyBgColor, backgroundImage: storyImage ? `url(${storyImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                        <textarea value={storyText} onChange={e => setStoryText(e.target.value)} placeholder="Bir şeyler yaz..." style={{ background: 'transparent', border: 'none', color: storyTextColor, fontSize: '24px', fontWeight: 'bold', textAlign: 'center', width: '100%', resize: 'none', outline: 'none', textShadow: storyTextColor === '#000000' ? 'none' : '0 2px 4px rgba(0,0,0,0.8)' }} rows={4} />
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Arka Plan:</span>
-                        {bgColors.map(c => (
-                            <div key={c} onClick={() => { setStoryBgColor(c); setStoryImage(null); setStoryImageFile(null); }} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyBgColor === c && !storyImage ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
-                        ))}
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Yazı Rengi:</span>
-                        {textColors.map(c => (
-                            <div key={c} onClick={() => setStoryTextColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyTextColor === c ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
-                        ))}
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => { if (e.target.files && e.target.files[0]) { setStoryImageFile(e.target.files[0]); setStoryImage(URL.createObjectURL(e.target.files[0])); } }} />
-                        <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ccc', background: '#f9f9f9', cursor: 'pointer', fontWeight: 600, color: '#555' }}>
-                            <i className="feather-image"></i> Fotoğraf
-                        </button>
-                        <button onClick={handleShare} disabled={!storyText.trim() && !storyImage} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: (!storyText.trim() && !storyImage) ? '#ccc' : '#006F79', color: '#fff', cursor: (!storyText.trim() && !storyImage) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
-                            Paylaş
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
-
-        {selectedStory && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedStory(null)}>
-                <div style={{ position: 'relative', width: '100%', maxWidth: '450px', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '0px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
-                    {hasPrev && <i className="feather-chevron-left" style={{ position: 'absolute', left: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001 }} onClick={goToPrev}></i>}
-                    {hasNext && <i className="feather-chevron-right" style={{ position: 'absolute', right: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001 }} onClick={goToNext}></i>}
-                    <div style={{ position: 'relative', width: '100%', height: '80vh', borderRadius: '16px', backgroundColor: selectedStory.bgColor || '#000', backgroundImage: selectedStory.bg ? `url(${BACKEND_URL}${selectedStory.bg})` : 'none', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
-                        {hasPrev && <div onClick={goToPrev} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
-                        {hasNext && <div onClick={goToNext} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
-                        {selectedStory.text && <p style={{ color: selectedStory.textColor || '#fff', fontSize: '28px', fontWeight: 'bold', textAlign: 'center', textShadow: '0 2px 6px rgba(0,0,0,0.8)', margin: 0, wordBreak: 'break-word', zIndex: 2 }}>{selectedStory.text}</p>}
-                        {selectedStory.bg && <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}></div>}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px', justifyContent: 'space-between', width: '100%', padding: '0 20px' }}>
-                        <div 
-                            style={{ display: 'flex', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '30px', cursor: 'pointer', transition: 'background 0.2s' }}
-                            onClick={() => onNavigateToProfile(selectedStory.userId)}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.7)'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.5)'}
-                        >
-                            <img src={selectedStory.avatar} alt={selectedStory.name} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginRight: '12px' }} />
-                            <p style={{ color: '#fff', margin: 0, fontWeight: 600, fontSize: '15px' }}>{selectedStory.name}</p>
+            {showCreateModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, color: '#006F79' }}>Hikaye Oluştur</h3>
+                            <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>&times;</button>
                         </div>
-                        {selectedStory.userId === currentUserId && (
-                            <button 
-                                onClick={() => {
-                                    if(window.confirm('Bu hikayeyi silmek istediğinize emin misiniz?')){
-                                        onDeleteStory(selectedStory.id);
-                                        setSelectedStory(null);
-                                    }
-                                }} 
-                                style={{ backgroundColor: 'rgba(231,76,60,0.8)', color: '#fff', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(231,76,60,1)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(231,76,60,0.8)'}
-                            >
-                                <i className="feather-trash-2" style={{ fontSize: '18px' }}></i>
+                        <div style={{ height: '300px', borderRadius: '12px', backgroundColor: storyImage ? 'transparent' : storyBgColor, backgroundImage: storyImage ? `url(${storyImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                            <textarea value={storyText} onChange={e => setStoryText(e.target.value)} placeholder="Bir şeyler yaz..." style={{ background: 'transparent', border: 'none', color: storyTextColor, fontSize: '24px', fontWeight: 'bold', textAlign: 'center', width: '100%', resize: 'none', outline: 'none', textShadow: storyTextColor === '#000000' ? 'none' : '0 2px 4px rgba(0,0,0,0.8)' }} rows={4} />
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', paddingBottom: '4px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Arka Plan:</span>
+                            {bgColors.map(c => (
+                                <div key={c} onClick={() => { setStoryBgColor(c); setStoryImage(null); setStoryImageFile(null); }} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyBgColor === c && !storyImage ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', paddingBottom: '4px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Yazı Rengi:</span>
+                            {textColors.map(c => (
+                                <div key={c} onClick={() => setStoryTextColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyTextColor === c ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => { if (e.target.files && e.target.files[0]) { setStoryImageFile(e.target.files[0]); setStoryImage(URL.createObjectURL(e.target.files[0])); } }} />
+                            <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ccc', background: '#f9f9f9', cursor: 'pointer', fontWeight: 600, color: '#555' }}>
+                                <i className="feather-image"></i> Fotoğraf
                             </button>
-                        )}
+                            <button onClick={handleShare} disabled={!storyText.trim() && !storyImage} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: (!storyText.trim() && !storyImage) ? '#ccc' : '#006F79', color: '#fff', cursor: (!storyText.trim() && !storyImage) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
+                                Paylaş
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        )}
+            )}
 
-        <div style={{ ...styles.card, padding: '16px', background: 'linear-gradient(to right, #ffffff, #e6f4f5)' }}>
-            <h4 style={{ margin: '0 0 16px 4px', color: '#006F79', fontSize: '15px', fontWeight: 700 }}>
-                <i className="feather-film" style={{ marginRight: '8px' }}></i>Kampüs Hikayeleri
-            </h4>
-            <div style={styles.storiesRow} className="stories-row">
-                {/* Hikaye Ekle Kartı (Kullanıcının Avatarı Arkaplan Olacak) */}
-                <div 
-                    style={{ 
-                        ...styles.storyCard, 
-                        backgroundImage: `url(${localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `http://localhost:5181${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"})`,
-                        border: '2px solid #006F79'
-                    }} 
-                    onClick={() => setShowCreateModal(true)}
-                >
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', background: 'rgba(255,255,255,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '6px' }}>
-                        <div style={{ position: 'absolute', top: '-12px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
-                            <i className="feather-plus" style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}></i>
+            {selectedStory && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedStory(null)}>
+                    <div style={{ position: 'relative', width: '100%', maxWidth: '450px', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '0px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
+                        {hasPrev && <i className="feather-chevron-left" style={{ position: 'absolute', left: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToPrev}></i>}
+                        {hasNext && <i className="feather-chevron-right" style={{ position: 'absolute', right: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToNext}></i>}
+                        <div style={{ position: 'relative', width: '100%', height: '80vh', borderRadius: '16px', backgroundColor: selectedStory.bgColor || '#000', backgroundImage: selectedStory.bg ? `url(${BACKEND_URL}${selectedStory.bg})` : 'none', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
+                            {hasPrev && <div onClick={goToPrev} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
+                            {hasNext && <div onClick={goToNext} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
+                            {selectedStory.text && <p style={{ color: selectedStory.textColor || '#fff', fontSize: '28px', fontWeight: 'bold', textAlign: 'center', textShadow: selectedStory.textColor === '#000000' ? 'none' : '0 2px 6px rgba(0,0,0,0.8)', margin: 0, wordBreak: 'break-word', zIndex: 2 }}>{selectedStory.text}</p>}
+                            {selectedStory.bg && <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}></div>}
                         </div>
-                        <p style={{ color: '#111', fontSize: '10px', fontWeight: 700, margin: 0 }}>Hikaye Ekle</p>
+                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px', justifyContent: 'space-between', width: '100%', padding: '0 20px' }}>
+                            <div 
+                                style={{ display: 'flex', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '30px', cursor: 'pointer', transition: 'background 0.2s' }}
+                                onClick={() => onNavigateToProfile(selectedStory.userId)}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.7)'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.5)'}
+                            >
+                                <img src={selectedStory.avatar} alt={selectedStory.name} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginRight: '12px' }} />
+                                <p style={{ color: '#fff', margin: 0, fontWeight: 600, fontSize: '15px' }}>{selectedStory.name}</p>
+                            </div>
+                            {selectedStory.userId === currentUserId && (
+                                <button 
+                                    onClick={() => {
+                                        if(window.confirm('Bu hikayeyi silmek istediğinize emin misiniz?')){
+                                            onDeleteStory(selectedStory.id);
+                                            setSelectedStory(null);
+                                        }
+                                    }} 
+                                    style={{ backgroundColor: 'rgba(231,76,60,0.8)', color: '#fff', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}
+                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(231,76,60,1)'}
+                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(231,76,60,0.8)'}
+                                >
+                                    <i className="feather-trash-2" style={{ fontSize: '18px' }}></i>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
-                {stories.map(s => (
-                    <div key={s.id} onClick={() => setSelectedStory(s)} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(${BACKEND_URL}${s.bg})` : 'none', backgroundColor: s.bg ? 'transparent' : (s.bgColor || '#000') }}>
-                        {!s.bg && s.text && (
-                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
-                                <p style={{ color: s.textColor || '#fff', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', margin: 0, wordBreak: 'break-word', opacity: 0.9 }}>{s.text.length > 40 ? s.text.substring(0, 40) + '...' : s.text}</p>
+            )}
+
+            <div style={{ ...styles.card, padding: '16px', background: 'linear-gradient(to right, #ffffff, #e6f4f5)' }}>
+                <h4 style={{ margin: '0 0 16px 4px', color: '#006F79', fontSize: '15px', fontWeight: 700 }}>
+                    <i className="feather-film" style={{ marginRight: '8px' }}></i>Kampüs Hikayeleri
+                </h4>
+                <div style={styles.storiesRow} className="stories-row">
+                    {/* Hikaye Ekle Kartı (Kullanıcının Avatarı Arkaplan Olacak) */}
+                    <div 
+                        style={{ 
+                            ...styles.storyCard, 
+                            backgroundImage: `url(${localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"})`,
+                            border: '2px solid #006F79'
+                        }} 
+                        onClick={() => setShowCreateModal(true)}
+                    >
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', background: 'rgba(255,255,255,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '6px' }}>
+                            <div style={{ position: 'absolute', top: '-12px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                                <i className="feather-plus" style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}></i>
                             </div>
-                        )}
-                        <div style={styles.storyGradient}>
-                            <img src={s.avatar} alt={s.name} style={{ ...styles.storyAvatar, border: '2px solid #006F79' }} />
-                            <p style={styles.storyLabel}>{s.name}</p>
+                            <p style={{ color: '#111', fontSize: '10px', fontWeight: 700, margin: 0 }}>Hikaye Ekle</p>
                         </div>
                     </div>
-                ))}
+                    {stories.map(s => (
+                        <div key={s.id} onClick={() => setSelectedStory(s)} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(${BACKEND_URL}${s.bg})` : 'none', backgroundColor: s.bg ? 'transparent' : (s.bgColor || '#000') }}>
+                            {!s.bg && s.text && (
+                                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+                                    <p style={{ color: s.textColor || '#fff', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', margin: 0, wordBreak: 'break-word', opacity: 0.9 }}>{s.text.length > 40 ? s.text.substring(0, 40) + '...' : s.text}</p>
+                                </div>
+                            )}
+                            <div style={styles.storyGradient}>
+                                <img src={s.avatar} alt={s.name} style={{ ...styles.storyAvatar, border: '2px solid #006F79' }} />
+                                <p style={styles.storyLabel}>{s.name}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
-        <style>{`.stories-row::-webkit-scrollbar { display: none; }`}</style>
+            <style>{`.stories-row::-webkit-scrollbar { display: none; }`}</style>
         </>
     );
 };
@@ -161,19 +161,20 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
 // ─── CreatePostBox ───────────────────────────────────────────────────────────
 const CreatePostBox = ({ onShare, isPosting, error, success }) => {
     const [text, setText] = useState('');
-    const [selectedImage, setSelectedImage] = useState(null);  // blob URL - preview
-    const [selectedFile, setSelectedFile] = useState(null);    // gerçek File nesnesi
+    const [selectedImagePreview, setSelectedImagePreview] = useState(null); 
+    const [selectedImageFile, setSelectedImageFile] = useState(null);       
     const [hashtagInput, setHashtagInput] = useState('');
     const [hashtags, setHashtags] = useState([]);
     const [showHashtagInput, setShowHashtagInput] = useState(false);
     const fileInputRef = React.useRef(null);
 
     const handleShareClick = async () => {
-        if (!text.trim() && !selectedImage) return;
-        await onShare(text.trim(), selectedFile, hashtags);
+        if (!text.trim() && !selectedImageFile) return;
+        // Hata 5: imageFile gerçek dosya nesnesini gönder
+        await onShare(text.trim(), selectedImageFile, hashtags);
         setText('');
-        setSelectedImage(null);
-        setSelectedFile(null);
+        setSelectedImagePreview(null);
+        setSelectedImageFile(null);
         setHashtags([]);
         setHashtagInput('');
         setShowHashtagInput(false);
@@ -182,8 +183,8 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setSelectedFile(file);
-            setSelectedImage(URL.createObjectURL(file));
+            setSelectedImageFile(file);                        
+            setSelectedImagePreview(URL.createObjectURL(file)); 
         }
     };
 
@@ -202,15 +203,23 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                 <i className="feather-edit-3" style={{ marginRight: '8px' }}></i>Gönderi Oluştur
             </h4>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-                <img src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `http://localhost:5181${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #006F79' }} />
+                <img src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #006F79' }} />
                 <div style={{ flex: 1 }}>
-                    <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Aklında ne var? Paylaş..." style={{ ...styles.postTextarea, width: '100%' }} rows={2} />
+                    <textarea
+                        value={text}
+                        onChange={e => setText(e.target.value)}
+                        placeholder="Aklında ne var? Paylaş..."
+                        style={{ ...styles.postTextarea, width: '100%' }}
+                        rows={2}
+                    />
 
+                    {/* Hashtag Listesi */}
                     {hashtags.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
                             {hashtags.map(tag => (
                                 <span key={tag} style={styles.hashtagPill}>
-                                    #{tag} <i onClick={() => removeHashtag(tag)} className="feather-x" style={{ marginLeft: '6px', cursor: 'pointer', fontSize: '12px' }}></i>
+                                    #{tag}
+                                    <i onClick={() => removeHashtag(tag)} className="feather-x" style={{ marginLeft: '6px', cursor: 'pointer', fontSize: '12px' }}></i>
                                 </span>
                             ))}
                         </div>
@@ -223,10 +232,11 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                         </div>
                     )}
 
-                    {selectedImage && (
+                    {/* Ön izleme resmi göster */}
+                    {selectedImagePreview && (
                         <div style={{ position: 'relative', marginTop: '10px', display: 'inline-block', maxWidth: '100%' }}>
-                            <img src={selectedImage} alt="preview" style={{ maxHeight: '300px', maxWidth: '100%', borderRadius: '12px', objectFit: 'contain', backgroundColor: 'rgba(0,0,0,0.03)' }} />
-                            <button onClick={() => { setSelectedImage(null); setSelectedFile(null); }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                            <img src={selectedImagePreview} alt="preview" style={{ maxHeight: '300px', maxWidth: '100%', borderRadius: '12px', objectFit: 'contain', backgroundColor: 'rgba(0,0,0,0.03)' }} />
+                            <button onClick={() => { setSelectedImagePreview(null); setSelectedImageFile(null); }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="feather-x"></i></button>
                         </div>
                     )}
                 </div>
@@ -241,8 +251,11 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                 <button onClick={() => setShowHashtagInput(!showHashtagInput)} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: showHashtagInput ? 'rgba(52,152,219,0.2)' : 'rgba(52,152,219,0.1)', color: '#3498db' }}>
                     <i className="feather-hash" style={{ marginRight: '6px' }}></i><span>Etiket Ekle</span>
                 </button>
-                <button onClick={handleShareClick} disabled={isPosting || (!text.trim() && !selectedImage)}
-                    style={{ ...styles.postActionBtn, marginLeft: 'auto', backgroundColor: ((!text.trim() && !selectedImage) || isPosting) ? '#ccc' : '#006F79', color: '#fff', fontWeight: 700, borderRadius: '20px', padding: '8px 24px', cursor: ((!text.trim() && !selectedImage) || isPosting) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: ((!text.trim() && !selectedImage) || isPosting) ? 'none' : '0 4px 12px rgba(0,111,121,0.3)' }}>
+                <button
+                    onClick={handleShareClick}
+                    disabled={isPosting || (!text.trim() && !selectedImageFile)}
+                    style={{ ...styles.postActionBtn, marginLeft: 'auto', backgroundColor: ((!text.trim() && !selectedImageFile) || isPosting) ? '#ccc' : '#006F79', color: '#fff', fontWeight: 700, borderRadius: '20px', padding: '8px 24px', cursor: ((!text.trim() && !selectedImageFile) || isPosting) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: ((!text.trim() && !selectedImageFile) || isPosting) ? 'none' : '0 4px 12px rgba(0,111,121,0.3)' }}
+                >
                     {isPosting ? 'Paylaşılıyor...' : 'Paylaş'}
                 </button>
             </div>
@@ -258,21 +271,27 @@ export default function FeedPage() {
     const [followStates, setFollowStates] = useState({});
     const [feedError, setFeedError] = useState('');
     const [postSuccess, setPostSuccess] = useState('');
-    const [trendRefreshKey, setTrendRefreshKey] = useState(0);
+    const [trendRefreshKey, setTrendRefreshKey] = useState(0); // Her gonderide artar
+
+    // Profil istatistikleri state'i
     const [stats, setStats] = useState({ followers: 0, following: 0, posts: 0 });
     const navigate = useNavigate();
 
     const userEmail = localStorage.getItem('email') || 'kullanici@mtu.edu.tr';
     const userRole = localStorage.getItem('role') || 'Öğrenci';
 
+    // JWT'den userId çıkar (dummy token ve gerçek JWT destekli)
     const getUserIdFromToken = () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) return 1;
-            if (token.startsWith('dummy-jwt-token-')) return parseInt(token.replace('dummy-jwt-token-', '')) || 1;
+            if (!token) return 0;
+            // Dummy token format: dummy-jwt-token-{id}
+            if (token.startsWith('dummy-jwt-token-'))
+                return parseInt(token.replace('dummy-jwt-token-', '')) || 0;
+            // Gerçek JWT
             const payload = JSON.parse(atob(token.split('.')[1]));
-            return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 1;
-        } catch { return 1; }
+            return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 0;
+        } catch { return 0; }
     };
     const currentUserId = getUserIdFromToken();
 
@@ -285,15 +304,15 @@ export default function FeedPage() {
                         id: p.id,
                         userId: p.userId,
                         user: p.author || 'Kullanıcı',
+                        authorId: p.authorId || p.userId, // Eşref ve senin mantığını garantiye alır
                         avatar: p.avatarUrl ? (p.avatarUrl.startsWith('http') ? p.avatarUrl : BACKEND_URL + p.avatarUrl) : '/images/user-7.png',
                         time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }),
                         role: 'Kullanıcı',
                         content: p.content,
+                        image: p.mediaUrl ? BACKEND_URL + p.mediaUrl : (p.medias?.[0]?.url ? BACKEND_URL + p.medias[0].url : null),
                         likeCount: p.likeCount || 0,
                         commentCount: p.commentCount || 0,
                         isLikedByCurrentUser: p.isLikedByCurrentUser || false,
-                        // Fotoğraf: backend'den gelen gerçek URL
-                        image: p.mediaUrl ? BACKEND_URL + p.mediaUrl : null,
                     }));
                     setPostList(mapped);
                 }
@@ -308,7 +327,7 @@ export default function FeedPage() {
                         id: s.id,
                         userId: s.userId,
                         name: s.userName,
-                        avatar: s.avatarUrl ? (s.avatarUrl.startsWith('http') ? s.avatarUrl : `http://localhost:5181${s.avatarUrl}`) : '/images/user-7.png',
+                        avatar: s.avatarUrl ? (s.avatarUrl.startsWith('http') ? s.avatarUrl : `${BACKEND_URL}${s.avatarUrl}`) : '/images/user-7.png',
                         bg: s.mediaPath,
                         text: s.textContent,
                         bgColor: s.backgroundColor || '#000',
@@ -323,7 +342,6 @@ export default function FeedPage() {
         loadStories();
     }, []);
 
-    // Gönderi paylaş: önce fotoğrafı yükle, sonra gönderiyi oluştur
     const handleShare = async (text, imageFile, hashtags) => {
         setIsPosting(true);
         setFeedError('');
@@ -334,41 +352,36 @@ export default function FeedPage() {
             const fullContent = (text + hashtagString).trim();
             if (!fullContent && !imageFile) return;
 
-            // 1. Fotoğraf varsa önce sunucuya yükle
-            let mediaUrl = null;
-            let previewUrl = null;
-            if (imageFile) {
-                previewUrl = URL.createObjectURL(imageFile);
-                try {
-                    const uploadResult = await postService.uploadPostImage(imageFile);
-                    mediaUrl = uploadResult.url; // /uploads/posts/xxxx.jpg
-                } catch {
-                    mediaUrl = null;
-                }
-            }
+            // Hata 5: imageFile ve hashtags'i doğrudan (FormData olarak) gönder (Senin altyapın)
+            const newPost = await postService.createPost(currentUserId, fullContent || ' ', imageFile, uniqueHashtags);
 
-            // 2. Gönderiyi oluştur
-            const newPost = await postService.createPost(currentUserId, fullContent || '.', mediaUrl);
+            // Önizleme URL'i: backend'den gelen media URL ya da geçici blob
+            const previewImageUrl = newPost.mediaUrl 
+                ? BACKEND_URL + newPost.mediaUrl 
+                : (newPost.medias?.[0]?.url ? BACKEND_URL + newPost.medias[0].url : (imageFile ? URL.createObjectURL(imageFile) : null));
 
             const currentUserAvatar = localStorage.getItem('avatarUrl');
 
             setPostList([{
                 id: newPost.id,
                 userId: currentUserId,
-                user: userEmail,
+                user: newPost.author || userEmail,
+                authorId: currentUserId,
                 avatar: currentUserAvatar ? (currentUserAvatar.startsWith('http') ? currentUserAvatar : BACKEND_URL + currentUserAvatar) : '/images/user-7.png',
                 time: 'Şimdi',
                 role: userRole,
                 content: text,
-                image: mediaUrl ? BACKEND_URL + mediaUrl : previewUrl,
-                hashtags: hashtags,
+                image: previewImageUrl,
+                hashtags: uniqueHashtags,
                 likeCount: 0,
                 commentCount: 0,
-                liked: false,
                 isLikedByCurrentUser: false,
             }, ...postList]);
 
+            // Gönderi sayısını artır ve sol menüyü uyar (Senin efsane event'in)
             setStats(prev => ({ ...prev, posts: prev.posts + 1 }));
+            window.dispatchEvent(new Event('postCreated'));
+            
             setPostSuccess('Gönderi başarıyla paylaşıldı!');
             setTimeout(() => setPostSuccess(''), 3000);
             setTrendRefreshKey(prev => prev + 1);
@@ -380,7 +393,8 @@ export default function FeedPage() {
     };
 
     const handleDeletePost = async (postId) => {
-        if (!window.confirm('Bu gönderiyi silmek istediğinize emin misiniz?')) return;
+        if (!window.confirm("Bu gönderiyi silmek istediğinize emin misiniz?")) return;
+
         try {
             await postService.deletePost(postId);
             setPostList(postList.filter(p => p.id !== postId));
@@ -412,7 +426,7 @@ export default function FeedPage() {
                     id: result.story.id,
                     userId: currentUserId,
                     name: userEmail,
-                    avatar: localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `http://localhost:5181${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png",
+                    avatar: localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png",
                     bg: result.story.mediaPath,
                     text: result.story.textContent,
                     bgColor: result.story.backgroundColor,
@@ -454,6 +468,8 @@ export default function FeedPage() {
                 />
                 <CreatePostBox onShare={handleShare} isPosting={isPosting} error={feedError} success={postSuccess} />
 
+                {feedError && <p style={{ color: '#e74c3c', textAlign: 'center', margin: '20px 0' }}>{feedError}</p>}
+
                 {postList.length === 0 ? (
                     <div style={{ ...styles.card, textAlign: 'center', padding: '40px', color: '#888' }}>
                         Henüz hiç gönderi yok. İlk paylaşan siz olun!
@@ -464,7 +480,7 @@ export default function FeedPage() {
                             key={post.id}
                             post={post}
                             onDelete={handleDeletePost}
-                            isOwnPost={post.user === userEmail}
+                            isOwnPost={post.authorId === currentUserId || post.userId === currentUserId}
                         />
                     ))
                 )}
