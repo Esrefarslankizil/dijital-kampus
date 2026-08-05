@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using DijitalKampus.API.Models;
+using DijitalKampus.API.Data;
 
 namespace DijitalKampus.API.Controllers;
 
@@ -10,12 +11,13 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
+    private readonly ApplicationDbContext _context;
 
-    // Artık DbContext'i elle çağırmıyoruz, Microsoft'un hazır Yöneticilerini çağırıyoruz 
-    public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
+    public AuthController(UserManager<User> userManager, SignInManager<User> signInManager, ApplicationDbContext context)
     {
-        _userManager = userManager; // Kulalnıcı işlemlerini yönetir. Kullanıcı oluşturma silme 
-        _signInManager = signInManager; // Oturum Açma işlemlerini Yönetir. 
+        _userManager = userManager; 
+        _signInManager = signInManager; 
+        _context = context;
     }
 
     [HttpPost("login")]
@@ -39,7 +41,7 @@ public class AuthController : ControllerBase
         if (!result.Succeeded)
             return Unauthorized(new { message = "Hatalı şifre girdiniz." });
 
-        // Başarılı giriş (Frontend ekibinin kodları bozulmasın diye eski formatta cevap dönüyoruz)
+        // Başarılı giriş
         return Ok(new 
         { 
             token = "dummy-jwt-token-" + user.Id, 
@@ -67,12 +69,20 @@ public class AuthController : ControllerBase
 
         if (!result.Succeeded)
         {
-            // Eğer bir hata varsa (şifre çok kısaysa, aynı e-posta varsa vs.) hataları listeleyip yolluyoruz
             var errors = result.Errors.Select(e => e.Description);
             return BadRequest(new { message = "Kayıt işlemi başarısız.", errors });
         }
 
+        _context.AuditLogs.Add(new AuditLog { AdminEmail = newUser.Email, Action = "KAYIT_OLUNDU", TargetUserId = newUser.Id, Details = $"{newUser.Email} sisteme kayıt oldu." });
+        await _context.SaveChangesAsync();
+
         return Ok(new { message = "Kayıt başarıyla oluşturuldu! Lütfen giriş yapın." });
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+    {
+        return Ok(new { message = "Çıkış başarılı." });
     }
 }
 
@@ -86,4 +96,9 @@ public class RegisterRequest
 {
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+}
+
+public class LogoutRequest
+{
+    public string Email { get; set; } = string.Empty;
 }

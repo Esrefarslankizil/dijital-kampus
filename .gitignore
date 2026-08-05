@@ -28,6 +28,7 @@ appsettings.Secret.json
 # ==============================
 # IDE VE İŞLETİM SİSTEMİ (Ortak)
 # ==============================
+.vs/
 .vscode/
 .idea/
 .DS_Store

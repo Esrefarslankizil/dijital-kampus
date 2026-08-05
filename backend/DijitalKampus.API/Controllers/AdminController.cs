@@ -63,17 +63,17 @@ public class AdminController : ControllerBase
         if (request.Action == "APPROVE")
         {
             user.IsApproved = true;
-            _context.AuditLogs.Add(new AuditLog { AdminEmail = adminEmail, Action = "USER_APPROVED", TargetUserId = user.Id, Details = $"{user.Email} onaylandı." });
+            _context.AuditLogs.Add(new AuditLog { AdminEmail = adminEmail, Action = "Kullanıcı Onaylandı", TargetUserId = user.Id, Details = $"{user.Email} onaylandı." });
         }
         else if (request.Action == "DEACTIVATE")
         {
             user.DeletedAt = DateTime.UtcNow;
-            _context.AuditLogs.Add(new AuditLog { AdminEmail = adminEmail, Action = "USER_DEACTIVATED", TargetUserId = user.Id, Details = $"{user.Email} pasife alındı." });
+            _context.AuditLogs.Add(new AuditLog { AdminEmail = adminEmail, Action = "Kullanıcı Pasife Alındı", TargetUserId = user.Id, Details = $"{user.Email} pasife alındı." });
         }
         else if (request.Action == "ACTIVATE")
         {
             user.DeletedAt = null;
-            _context.AuditLogs.Add(new AuditLog { AdminEmail = adminEmail, Action = "USER_ACTIVATED", TargetUserId = user.Id, Details = $"{user.Email} aktifleştirildi." });
+            _context.AuditLogs.Add(new AuditLog { AdminEmail = adminEmail, Action = "Kullanıcı Aktifleştirildi", TargetUserId = user.Id, Details = $"{user.Email} aktifleştirildi." });
         }
         
         await _context.SaveChangesAsync();
@@ -132,6 +132,7 @@ public class AdminController : ControllerBase
         var e = await _context.Events.FindAsync(id);
         if (e == null) return NotFound();
         e.IsApproved = true;
+        _context.AuditLogs.Add(new AuditLog { AdminEmail = "admin@kampus.com", Action = "Etkinlik Onaylandı", Details = $"Etkinlik '{e.Title}' onaylandı." });
         await _context.SaveChangesAsync();
         return Ok();
     }
@@ -141,7 +142,8 @@ public class AdminController : ControllerBase
     {
         var e = await _context.Events.FindAsync(id);
         if (e == null) return NotFound();
-        _context.Events.Remove(e);
+        e.DeletedAt = DateTime.UtcNow;
+        _context.AuditLogs.Add(new AuditLog { AdminEmail = "admin@kampus.com", Action = "Etkinlik Silindi", Details = $"Etkinlik '{e.Title}' silindi/reddedildi." });
         await _context.SaveChangesAsync();
         return Ok();
     }
@@ -188,6 +190,7 @@ public class AdminController : ControllerBase
         var g = await _context.Groups.FindAsync(id);
         if (g == null) return NotFound();
         g.IsApproved = true;
+        _context.AuditLogs.Add(new AuditLog { AdminEmail = "admin@kampus.com", Action = "Grup Onaylandı", Details = $"Grup '{g.Name}' onaylandı." });
         await _context.SaveChangesAsync();
         return Ok();
     }
@@ -197,7 +200,8 @@ public class AdminController : ControllerBase
     {
         var g = await _context.Groups.FindAsync(id);
         if (g == null) return NotFound();
-        _context.Groups.Remove(g);
+        g.DeletedAt = DateTime.UtcNow;
+        _context.AuditLogs.Add(new AuditLog { AdminEmail = "admin@kampus.com", Action = "Grup Silindi", Details = $"Grup '{g.Name}' silindi/reddedildi." });
         await _context.SaveChangesAsync();
         return Ok();
     }
@@ -225,9 +229,20 @@ public class AdminController : ControllerBase
     [HttpDelete("posts/{id}")]
     public async Task<IActionResult> DeletePost(int id)
     {
-        var p = await _context.Posts.FindAsync(id);
+        var p = await _context.Posts.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
         if (p == null) return NotFound();
-        _context.Posts.Remove(p);
+        p.DeletedAt = DateTime.UtcNow;
+        _context.AuditLogs.Add(new AuditLog { AdminEmail = "admin@kampus.com", Action = "Gönderi Silindi", Details = $"{p.User.Email} adlı kullanıcının gönderisi silindi." });
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpDelete("logs/{id}")]
+    public async Task<IActionResult> DeleteAuditLog(int id)
+    {
+        var log = await _context.AuditLogs.FindAsync(id);
+        if (log == null) return NotFound();
+        _context.AuditLogs.Remove(log);
         await _context.SaveChangesAsync();
         return Ok();
     }

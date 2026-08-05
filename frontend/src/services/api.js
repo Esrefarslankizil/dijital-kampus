@@ -43,6 +43,18 @@ export const authService = {
         await new Promise(r => setTimeout(r, 800));
         return { success: true };
     },
+
+    logout: async (email) => {
+        try {
+            await fetch(API_BASE_URL + '/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+        } catch (e) {
+            console.error('Logout log error:', e);
+        }
+    }
 };
 
 // Posts
@@ -261,7 +273,11 @@ export const adminService = {
 
     deletePost: async (id) => {
         const response = await authFetch(API_BASE_URL + '/admin/posts/' + id, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Gonderi silinemedi.');
+        if (!response.ok) throw new Error('Gönderi silinemedi.');
+    },
+    deleteLog: async (id) => {
+        const response = await authFetch(API_BASE_URL + '/admin/logs/' + id, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Log silinemedi.');
     }
 };
 

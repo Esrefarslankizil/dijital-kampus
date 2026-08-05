@@ -332,12 +332,16 @@ export default function ProfilePage() {
 
                 {/* Posts */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {profile.posts?.length > 0 ? profile.posts.map(p => (
-                        <PostCard key={p.id}
-                            post={{ id: p.id, user: displayName, role: profile.departmentOrTitle, avatar: avatarSrc, time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }), content: p.content, likes: p.likeCount, comments: p.commentCount, liked: p.isLikedByMe, image: p.medias?.[0]?.url || null }}
-                            isOwnPost={isMe} onLike={loadProfile} onDelete={loadProfile}
-                        />
-                    )) : (
+                    {profile.posts?.length > 0 ? profile.posts.map(p => {
+                        const imgUrl = p.medias?.[0]?.url;
+                        const fullImgUrl = imgUrl ? (imgUrl.startsWith('http') ? imgUrl : `http://localhost:5181${imgUrl}`) : null;
+                        return (
+                            <PostCard key={p.id}
+                                post={{ id: p.id, user: displayName, role: profile.departmentOrTitle, avatar: avatarSrc, time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }), content: p.content, likes: p.likeCount, comments: p.commentCount, liked: p.isLikedByMe, image: fullImgUrl }}
+                                isOwnPost={isMe} onLike={loadProfile} onDelete={loadProfile}
+                            />
+                        );
+                    }) : (
                         <div style={S.noPosts}>
                             <i className="feather-camera" style={{ fontSize: 48, color: '#ddd', display: 'block', marginBottom: 12 }}></i>
                             <h3 style={{ margin: '0 0 8px', color: '#555' }}>Henüz Gönderi Yok</h3>

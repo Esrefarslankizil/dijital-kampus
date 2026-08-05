@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { adminService } from '../services/api';
+import { adminService, authService } from '../services/api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import MtuLogo from '../components/MtuLogo';
@@ -9,6 +9,12 @@ export default function AdminPage() {
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
     const [logs, setLogs] = useState([]);
+    
+    // Logs filtering and pagination
+    const [logSearchTerm, setLogSearchTerm] = useState('');
+    const [logActionFilter, setLogActionFilter] = useState('Tümü');
+    const [logCurrentPage, setLogCurrentPage] = useState(1);
+    const logsPerPage = 15;
     
     // New states for moderation
     // New states for moderation
@@ -139,7 +145,19 @@ export default function AdminPage() {
         } catch (e) { alert("Grup reddedilemedi."); }
     };
 
-    const handleLogout = () => {
+    const handleDeleteLog = async (id) => {
+        if (!window.confirm("Bu işlem kaydını silmek istediğinize emin misiniz?")) return;
+        try {
+            await adminService.deleteLog(id);
+            setLogs(logs.filter(l => l.id !== id));
+        } catch (e) { alert("Log silinemedi."); }
+    };
+
+    const handleLogout = async () => {
+        const email = localStorage.getItem('email');
+        if (email) {
+            await authService.logout(email);
+        }
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('email');
@@ -663,26 +681,206 @@ export default function AdminPage() {
         );
     };
 
-    const renderLogs = () => (
-        <div style={styles.card}>
-            <h3 style={styles.sectionTitle}>İşlem Geçmişi (Audit Logs)</h3>
-            {logs.length === 0 ? <p style={{ color: '#94a3b8' }}>Kayıt bulunamadı.</p> : (
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                    {logs.map(log => (
-                        <li key={log.id} style={{ padding: '16px 0', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <span style={{ fontWeight: 'bold', color: '#38bdf8', marginRight: '12px' }}>[{log.action}]</span>
-                                <span style={{ color: '#e2e8f0' }}>{log.details}</span>
+    const renderLogs = () => {
+        // Dinamik filtre seçenekleri (Tüm olası işlemleri sabit olarak da ekleyelim)
+        const ALL_POSSIBLE_ACTIONS = [
+            'KULLANICI_ONAYLANDI', 'KULLANICI_PASIFE_ALINDI', 'KULLANICI_AKTIFLESTIRILDI',
+            'ETKINLIK_ONAYLANDI', 'ETKINLIK_SILINDI',
+            'GRUP_ONAYLANDI', 'GRUP_SILINDI',
+            'GONDERI_SILINDI',
+            'KAYIT_OLUNDU'
+        ];
+        const uniqueActions = ['Tümü', ...new Set([...ALL_POSSIBLE_ACTIONS, ...logs.map(log => log.action)])].filter(Boolean);
+
+        // Filtreleme
+        const filteredLogs = logs.filter(log => {
+            const matchSearch = log.details?.toLowerCase().includes(logSearchTerm.toLowerCase()) || 
+                                log.action?.toLowerCase().includes(logSearchTerm.toLowerCase());
+            const matchAction = logActionFilter === 'Tümü' || log.action === logActionFilter;
+            return matchSearch && matchAction;
+        });
+
+        // Sayfalama
+        const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+        const indexOfLastLog = logCurrentPage * logsPerPage;
+        const indexOfFirstLog = indexOfLastLog - logsPerPage;
+        const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
+
+        const paginate = (pageNumber) => setLogCurrentPage(pageNumber);
+
+        // İkon eşleştirme (Aksiyon türüne göre)
+        const getActionIcon = (action) => {
+            if (action?.includes('USER') || action?.includes('KULLANICI')) return 'feather-user';
+            if (action?.includes('POST') || action?.includes('GÖNDERİ')) return 'feather-file-text';
+            if (action?.includes('EVENT') || action?.includes('ETKİNLİK')) return 'feather-calendar';
+            if (action?.includes('GROUP') || action?.includes('GRUP')) return 'feather-users';
+            if (action?.includes('LOGIN') || action?.includes('AUTH')) return 'feather-log-in';
+            if (action?.includes('DELETE') || action?.includes('SİL')) return 'feather-trash-2';
+            return 'feather-activity';
+        };
+
+        const getActionColor = (action) => {
+            if (action?.includes('DEACTIVATED') || action?.includes('DELETE') || action?.includes('REJECT')) return '#ef4444'; // Red
+            if (action?.includes('ACTIVATED') || action?.includes('APPROVE') || action?.includes('CREATE')) return '#10b981'; // Green
+            if (action?.includes('UPDATE') || action?.includes('EDIT')) return '#f59e0b'; // Orange
+            return '#3b82f6'; // Blue
+        };
+
+        return (
+            <div style={styles.card}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                    <h3 style={{ ...styles.sectionTitle, marginBottom: 0 }}>İşlem Geçmişi (Audit Logs)</h3>
+                    <div style={{ fontSize: '13px', color: '#94a3b8', backgroundColor: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: '20px' }}>
+                        Toplam <span style={{ color: '#fff', fontWeight: 'bold' }}>{filteredLogs.length}</span> kayıt
+                    </div>
+                </div>
+
+                {/* Filtreleme Çubuğu */}
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+                        <i className="feather-search" style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }}></i>
+                        <input 
+                            type="text" 
+                            placeholder="Detaylarda veya işlemlerde ara..." 
+                            value={logSearchTerm}
+                            onChange={(e) => { setLogSearchTerm(e.target.value); setLogCurrentPage(1); }}
+                            style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', boxSizing: 'border-box', transition: 'all 0.3s' }}
+                            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                            onBlur={(e) => e.target.style.borderColor = '#334155'}
+                        />
+                    </div>
+                    <div style={{ position: 'relative', minWidth: '180px' }}>
+                        <i className="feather-filter" style={{ position: 'absolute', left: '12px', top: '10px', color: '#94a3b8' }}></i>
+                        <select 
+                            value={logActionFilter} 
+                            onChange={(e) => { setLogActionFilter(e.target.value); setLogCurrentPage(1); }}
+                            style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#fff', outline: 'none', fontSize: '14px', appearance: 'none', cursor: 'pointer', transition: 'all 0.3s' }}
+                            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                            onBlur={(e) => e.target.style.borderColor = '#334155'}
+                        >
+                            {uniqueActions.map((action, idx) => (
+                                <option key={idx} value={action}>{action}</option>
+                            ))}
+                        </select>
+                        <i className="feather-chevron-down" style={{ position: 'absolute', right: '12px', top: '10px', color: '#94a3b8', pointerEvents: 'none' }}></i>
+                    </div>
+                </div>
+
+                {currentLogs.length === 0 ? (
+                    <div style={{ padding: '40px 20px', textAlign: 'center', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed #334155' }}>
+                        <i className="feather-file-minus" style={{ fontSize: '32px', color: '#475569', marginBottom: '12px', display: 'block' }}></i>
+                        <p style={{ color: '#94a3b8', margin: 0, fontSize: '14px' }}>Kriterlere uygun kayıt bulunamadı.</p>
+                    </div>
+                ) : (
+                    <>
+                        <div style={{ overflowX: 'auto', borderRadius: '10px', border: '1px solid #1e293b' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', backgroundColor: '#0f172a' }}>
+                                <thead>
+                                    <tr style={{ backgroundColor: '#1e293b' }}>
+                                        <th style={{ padding: '14px 16px', color: '#94a3b8', fontWeight: '600', fontSize: '13px', borderBottom: '1px solid #334155' }}>İşlem Tipi</th>
+                                        <th style={{ padding: '14px 16px', color: '#94a3b8', fontWeight: '600', fontSize: '13px', borderBottom: '1px solid #334155' }}>Detaylar</th>
+                                        <th style={{ padding: '14px 16px', color: '#94a3b8', fontWeight: '600', fontSize: '13px', borderBottom: '1px solid #334155', width: '180px' }}>Tarih / Saat</th>
+                                        <th style={{ padding: '14px 16px', color: '#94a3b8', fontWeight: '600', fontSize: '13px', borderBottom: '1px solid #334155', width: '80px' }}>İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentLogs.map((log, index) => {
+                                        const actionColor = getActionColor(log.action);
+                                        return (
+                                            <tr key={log.id || index} style={{ borderBottom: '1px solid #1e293b', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                                <td style={{ padding: '14px 16px', verticalAlign: 'middle' }}>
+                                                    <span style={{ 
+                                                        display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                                                        backgroundColor: `${actionColor}15`, color: actionColor, 
+                                                        padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', border: `1px solid ${actionColor}30`
+                                                    }}>
+                                                        <i className={getActionIcon(log.action)}></i>
+                                                        {log.action}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '14px 16px', color: '#e2e8f0', fontSize: '14px', lineHeight: '1.5', verticalAlign: 'middle' }}>
+                                                    {log.details}
+                                                </td>
+                                                <td style={{ padding: '14px 16px', color: '#94a3b8', fontSize: '13px', verticalAlign: 'middle' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        <span style={{ color: '#cbd5e1' }}><i className="feather-calendar" style={{ marginRight: '6px', fontSize: '12px' }}></i>{new Date(log.createdAt).toLocaleDateString('tr-TR')}</span>
+                                                        <span><i className="feather-clock" style={{ marginRight: '6px', fontSize: '12px' }}></i>{new Date(log.createdAt).toLocaleTimeString('tr-TR')}</span>
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '14px 16px', verticalAlign: 'middle', textAlign: 'center' }}>
+                                                    <button 
+                                                        onClick={() => handleDeleteLog(log.id)}
+                                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                        title="Bu kaydı sil"
+                                                    >
+                                                        <i className="feather-trash-2" style={{ fontSize: '16px' }}></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Sayfalama Butonları */}
+                        {totalPages > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
+                                <span style={{ color: '#64748b', fontSize: '13px' }}>
+                                    Sayfa {logCurrentPage} / {totalPages}
+                                </span>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <button 
+                                        disabled={logCurrentPage === 1}
+                                        onClick={() => paginate(logCurrentPage - 1)}
+                                        style={{ ...styles.pageBtn, opacity: logCurrentPage === 1 ? 0.5 : 1, cursor: logCurrentPage === 1 ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        <i className="feather-chevron-left"></i> Önceki
+                                    </button>
+                                    
+                                    <div style={{ display: 'flex', gap: '4px', overflow: 'hidden' }}>
+                                        {[...Array(totalPages)].map((_, i) => {
+                                            if (i === 0 || i === totalPages - 1 || (i >= logCurrentPage - 2 && i <= logCurrentPage)) {
+                                                return (
+                                                    <button 
+                                                        key={i}
+                                                        onClick={() => paginate(i + 1)}
+                                                        style={{ 
+                                                            ...styles.pageBtn, 
+                                                            backgroundColor: logCurrentPage === i + 1 ? '#3b82f6' : 'transparent', 
+                                                            color: logCurrentPage === i + 1 ? '#fff' : '#94a3b8', 
+                                                            border: logCurrentPage === i + 1 ? '1px solid #3b82f6' : '1px solid #334155',
+                                                            minWidth: '36px',
+                                                            padding: '6px'
+                                                        }}
+                                                    >
+                                                        {i + 1}
+                                                    </button>
+                                                )
+                                            }
+                                            if (i === 1 && logCurrentPage > 3) return <span key={i} style={{ color: '#64748b', padding: '6px' }}>...</span>;
+                                            if (i === totalPages - 2 && logCurrentPage < totalPages - 2) return <span key={i} style={{ color: '#64748b', padding: '6px' }}>...</span>;
+                                            return null;
+                                        })}
+                                    </div>
+
+                                    <button 
+                                        disabled={logCurrentPage === totalPages}
+                                        onClick={() => paginate(logCurrentPage + 1)}
+                                        style={{ ...styles.pageBtn, opacity: logCurrentPage === totalPages ? 0.5 : 1, cursor: logCurrentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Sonraki <i className="feather-chevron-right"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div style={{ color: '#94a3b8', fontSize: '13px' }}>
-                                {new Date(log.createdAt).toLocaleString('tr-TR')}
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
-    );
+                        )}
+                    </>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div style={styles.layout}>
