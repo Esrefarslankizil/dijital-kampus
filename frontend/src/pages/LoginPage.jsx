@@ -35,15 +35,22 @@ function LoginPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        localStorage.clear(); // 🚀 Eski hesaptan kalan ne varsa kökten siler!
+        localStorage.clear(); // 🚀 Senin eklediğin: Eski hesaptan kalan ne varsa kökten siler!
         setLoading(true);
         setError('');
         try {
             const result = await authService.login(email, password);
-            // JWT token'ı localStorage'a kaydet
+            
+            // JWT token'ı ve bilgileri localStorage'a kaydet
             localStorage.setItem('token', result.token);
             localStorage.setItem('role', result.role);
             localStorage.setItem('email', result.email);
+            
+            // Eşref'in eklediği: Avatar URL'sini kaydet
+            if (result.avatarUrl) {
+                localStorage.setItem('avatarUrl', result.avatarUrl);
+            }
+            
             window.location.href = '/feed';
         } catch (err) {
             setError('E-posta veya şifre hatalı. Lütfen tekrar deneyin.');

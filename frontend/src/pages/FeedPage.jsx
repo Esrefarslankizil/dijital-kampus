@@ -4,9 +4,12 @@ import LeftSidebar from '../components/layout/LeftSidebar';
 import RightSidebar from '../components/layout/RightSidebar';
 import PostCard from '../components/posts/PostCard';
 
-// --- Alt Bileşenler (React Components) ---
+import { useNavigate } from 'react-router-dom';
 
-const StoryCarousel = ({ stories, onStoryUpload }) => {
+const BACKEND_URL = 'http://localhost:5181';
+
+// ─── StoryCarousel ──────────────────────────────────────────────────────────
+const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, onNavigateToProfile }) => {
     const fileInputRef = React.useRef(null);
     const [selectedStory, setSelectedStory] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -23,15 +26,8 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
     const hasNext = selectedIndex !== -1 && selectedIndex < stories.length - 1;
     const hasPrev = selectedIndex !== -1 && selectedIndex > 0;
 
-    const goToNext = (e) => {
-        e.stopPropagation();
-        if (hasNext) setSelectedStory(stories[selectedIndex + 1]);
-    };
-
-    const goToPrev = (e) => {
-        e.stopPropagation();
-        if (hasPrev) setSelectedStory(stories[selectedIndex - 1]);
-    };
+    const goToNext = (e) => { e.stopPropagation(); if (hasNext) setSelectedStory(stories[selectedIndex + 1]); };
+    const goToPrev = (e) => { e.stopPropagation(); if (hasPrev) setSelectedStory(stories[selectedIndex - 1]); };
 
     const handleShare = () => {
         onStoryUpload(storyImageFile, storyText, storyBgColor, storyTextColor);
@@ -51,38 +47,23 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
                             <h3 style={{ margin: 0, color: '#006F79' }}>Hikaye Oluştur</h3>
                             <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>&times;</button>
                         </div>
-
-                        <div style={{ height: '300px', borderRadius: '12px', backgroundColor: storyImage ? 'transparent' : storyBgColor, backgroundImage: storyImage ? `url(${storyImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-                            <textarea
-                                value={storyText}
-                                onChange={e => setStoryText(e.target.value)}
-                                placeholder="Bir şeyler yaz..."
-                                style={{ background: 'transparent', border: 'none', color: storyTextColor, fontSize: '24px', fontWeight: 'bold', textAlign: 'center', width: '100%', resize: 'none', outline: 'none', textShadow: storyTextColor === '#000000' ? 'none' : '0 2px 4px rgba(0,0,0,0.8)' }}
-                                rows={4}
-                            />
+                        <div style={{ height: '300px', borderRadius: '12px', backgroundColor: storyImage ? 'transparent' : storyBgColor, backgroundImage: storyImage ? `url(${storyImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                            <textarea value={storyText} onChange={e => setStoryText(e.target.value)} placeholder="Bir şeyler yaz..." style={{ background: 'transparent', border: 'none', color: storyTextColor, fontSize: '24px', fontWeight: 'bold', textAlign: 'center', width: '100%', resize: 'none', outline: 'none', textShadow: storyTextColor === '#000000' ? 'none' : '0 2px 4px rgba(0,0,0,0.8)' }} rows={4} />
                         </div>
-
-                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', paddingBottom: '4px' }}>
                             <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Arka Plan:</span>
                             {bgColors.map(c => (
                                 <div key={c} onClick={() => { setStoryBgColor(c); setStoryImage(null); setStoryImageFile(null); }} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyBgColor === c && !storyImage ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
                             ))}
                         </div>
-
-                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', paddingBottom: '4px' }}>
                             <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Yazı Rengi:</span>
                             {textColors.map(c => (
                                 <div key={c} onClick={() => setStoryTextColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyTextColor === c ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
                             ))}
                         </div>
-
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                    setStoryImageFile(e.target.files[0]);
-                                    setStoryImage(URL.createObjectURL(e.target.files[0]));
-                                }
-                            }} />
+                            <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => { if (e.target.files && e.target.files[0]) { setStoryImageFile(e.target.files[0]); setStoryImage(URL.createObjectURL(e.target.files[0])); } }} />
                             <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ccc', background: '#f9f9f9', cursor: 'pointer', fontWeight: 600, color: '#555' }}>
                                 <i className="feather-image"></i> Fotoğraf
                             </button>
@@ -98,46 +79,67 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedStory(null)}>
                     <div style={{ position: 'relative', width: '100%', maxWidth: '450px', maxHeight: '90%', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                         <button onClick={() => setSelectedStory(null)} style={{ position: 'absolute', top: '-40px', right: '0px', background: 'none', border: 'none', color: '#fff', fontSize: '36px', cursor: 'pointer', zIndex: 10000 }}>&times;</button>
-
-                        {hasPrev && (
-                            <i className="feather-chevron-left" style={{ position: 'absolute', left: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToPrev}></i>
-                        )}
-                        {hasNext && (
-                            <i className="feather-chevron-right" style={{ position: 'absolute', right: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToNext}></i>
-                        )}
-
-                        <div style={{ position: 'relative', width: '100%', height: '80vh', borderRadius: '16px', backgroundColor: selectedStory.bgColor || '#000', backgroundImage: selectedStory.bg ? `url(http://localhost:5181${selectedStory.bg})` : 'none', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
-
-                            {/* Left/Right click areas for swipe-like feel */}
+                        {hasPrev && <i className="feather-chevron-left" style={{ position: 'absolute', left: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToPrev}></i>}
+                        {hasNext && <i className="feather-chevron-right" style={{ position: 'absolute', right: '-50px', top: '50%', transform: 'translateY(-50%)', color: '#fff', fontSize: '40px', cursor: 'pointer', zIndex: 10001, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }} onClick={goToNext}></i>}
+                        <div style={{ position: 'relative', width: '100%', height: '80vh', borderRadius: '16px', backgroundColor: selectedStory.bgColor || '#000', backgroundImage: selectedStory.bg ? `url(${BACKEND_URL}${selectedStory.bg})` : 'none', backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
                             {hasPrev && <div onClick={goToPrev} style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
                             {hasNext && <div onClick={goToNext} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '40%', cursor: 'pointer', zIndex: 10 }}></div>}
-
-                            {selectedStory.text && (
-                                <p style={{ color: selectedStory.textColor || '#fff', fontSize: '28px', fontWeight: 'bold', textAlign: 'center', textShadow: selectedStory.textColor === '#000000' ? 'none' : '0 2px 6px rgba(0,0,0,0.8)', margin: 0, wordBreak: 'break-word', zIndex: 2 }}>{selectedStory.text}</p>
-                            )}
+                            {selectedStory.text && <p style={{ color: selectedStory.textColor || '#fff', fontSize: '28px', fontWeight: 'bold', textAlign: 'center', textShadow: selectedStory.textColor === '#000000' ? 'none' : '0 2px 6px rgba(0,0,0,0.8)', margin: 0, wordBreak: 'break-word', zIndex: 2 }}>{selectedStory.text}</p>}
                             {selectedStory.bg && <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '16px' }}></div>}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px', backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '30px' }}>
-                            <img src={selectedStory.avatar} alt={selectedStory.name} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginRight: '12px' }} />
-                            <p style={{ color: '#fff', margin: 0, fontWeight: 600, fontSize: '15px' }}>{selectedStory.name}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px', justifyContent: 'space-between', width: '100%', padding: '0 20px' }}>
+                            <div 
+                                style={{ display: 'flex', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '30px', cursor: 'pointer', transition: 'background 0.2s' }}
+                                onClick={() => onNavigateToProfile(selectedStory.userId)}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.7)'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.5)'}
+                            >
+                                <img src={selectedStory.avatar} alt={selectedStory.name} style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginRight: '12px' }} />
+                                <p style={{ color: '#fff', margin: 0, fontWeight: 600, fontSize: '15px' }}>{selectedStory.name}</p>
+                            </div>
+                            {selectedStory.userId === currentUserId && (
+                                <button 
+                                    onClick={() => {
+                                        if(window.confirm('Bu hikayeyi silmek istediğinize emin misiniz?')){
+                                            onDeleteStory(selectedStory.id);
+                                            setSelectedStory(null);
+                                        }
+                                    }} 
+                                    style={{ backgroundColor: 'rgba(231,76,60,0.8)', color: '#fff', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}
+                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(231,76,60,1)'}
+                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(231,76,60,0.8)'}
+                                >
+                                    <i className="feather-trash-2" style={{ fontSize: '18px' }}></i>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
+
             <div style={{ ...styles.card, padding: '16px', background: 'linear-gradient(to right, #ffffff, #e6f4f5)' }}>
                 <h4 style={{ margin: '0 0 16px 4px', color: '#006F79', fontSize: '15px', fontWeight: 700 }}>
                     <i className="feather-film" style={{ marginRight: '8px' }}></i>Kampüs Hikayeleri
                 </h4>
                 <div style={styles.storiesRow} className="stories-row">
-                    <div style={styles.storyAddCard} onClick={() => setShowCreateModal(true)}>
-                        <div style={styles.storyAddIcon}>
-                            <i className="feather-plus" style={{ color: '#fff', fontSize: '20px' }}></i>
+                    {/* Hikaye Ekle Kartı (Kullanıcının Avatarı Arkaplan Olacak) */}
+                    <div 
+                        style={{ 
+                            ...styles.storyCard, 
+                            backgroundImage: `url(${localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"})`,
+                            border: '2px solid #006F79'
+                        }} 
+                        onClick={() => setShowCreateModal(true)}
+                    >
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', background: 'rgba(255,255,255,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '6px' }}>
+                            <div style={{ position: 'absolute', top: '-12px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                                <i className="feather-plus" style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}></i>
+                            </div>
+                            <p style={{ color: '#111', fontSize: '10px', fontWeight: 700, margin: 0 }}>Hikaye Ekle</p>
                         </div>
-                        <p style={styles.storyLabel}>Hikaye Ekle</p>
                     </div>
-
                     {stories.map(s => (
-                        <div key={s.id} onClick={() => setSelectedStory(s)} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(http://localhost:5181${s.bg})` : 'none', backgroundColor: s.bg ? 'transparent' : (s.bgColor || '#000') }}>
+                        <div key={s.id} onClick={() => setSelectedStory(s)} style={{ ...styles.storyCard, backgroundImage: s.bg ? `url(${BACKEND_URL}${s.bg})` : 'none', backgroundColor: s.bg ? 'transparent' : (s.bgColor || '#000') }}>
                             {!s.bg && s.text && (
                                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
                                     <p style={{ color: s.textColor || '#fff', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', margin: 0, wordBreak: 'break-word', opacity: 0.9 }}>{s.text.length > 40 ? s.text.substring(0, 40) + '...' : s.text}</p>
@@ -151,19 +153,16 @@ const StoryCarousel = ({ stories, onStoryUpload }) => {
                     ))}
                 </div>
             </div>
-            <style>{`
-        .stories-row::-webkit-scrollbar {
-            display: none;
-        }
-    `}</style>
+            <style>{`.stories-row::-webkit-scrollbar { display: none; }`}</style>
         </>
     );
 };
 
+// ─── CreatePostBox ───────────────────────────────────────────────────────────
 const CreatePostBox = ({ onShare, isPosting, error, success }) => {
     const [text, setText] = useState('');
-    const [selectedImagePreview, setSelectedImagePreview] = useState(null); // Görüntü ön izleme URL'i
-    const [selectedImageFile, setSelectedImageFile] = useState(null);       // Gerçek File nesnesi
+    const [selectedImagePreview, setSelectedImagePreview] = useState(null); 
+    const [selectedImageFile, setSelectedImageFile] = useState(null);       
     const [hashtagInput, setHashtagInput] = useState('');
     const [hashtags, setHashtags] = useState([]);
     const [showHashtagInput, setShowHashtagInput] = useState(false);
@@ -179,29 +178,24 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
         setHashtags([]);
         setHashtagInput('');
         setShowHashtagInput(false);
-    }
+    };
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setSelectedImageFile(file);                         // Dosya nesnesini sakla
-            setSelectedImagePreview(URL.createObjectURL(file)); // Ön izleme URL'i
+            setSelectedImageFile(file);                        
+            setSelectedImagePreview(URL.createObjectURL(file)); 
         }
-    }
+    };
 
     const handleAddHashtag = (e) => {
         const raw = e.target.value;
-        // Virgülle ayrılmış etiketleri parse et ve TEKİLLEŞTİR
-        const tags = [...new Set(
-            raw.split(',').map(t => t.trim().replace(/^#/, '').toLowerCase()).filter(t => t.length > 0)
-        )];
+        const tags = [...new Set(raw.split(',').map(t => t.trim().replace(/^#/, '').toLowerCase()).filter(t => t.length > 0))];
         setHashtags(tags);
         setHashtagInput(raw);
-    }
+    };
 
-    const removeHashtag = (tagToRemove) => {
-        setHashtags(hashtags.filter(tag => tag !== tagToRemove));
-    }
+    const removeHashtag = (tagToRemove) => setHashtags(hashtags.filter(tag => tag !== tagToRemove));
 
     return (
         <div style={{ ...styles.card, padding: '16px', background: 'linear-gradient(to right, #ffffff, #e6f4f5)' }}>
@@ -209,7 +203,7 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                 <i className="feather-edit-3" style={{ marginRight: '8px' }}></i>Gönderi Oluştur
             </h4>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-                <img src="/images/user-7.png" alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #006F79' }} />
+                <img src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #006F79' }} />
                 <div style={{ flex: 1 }}>
                     <textarea
                         value={text}
@@ -231,20 +225,10 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                         </div>
                     )}
 
-                    {/* Hashtag Ekleme Inputu */}
                     {showHashtagInput && (
                         <div style={{ marginTop: '10px' }}>
-                            <input
-                                type="text"
-                                value={hashtagInput}
-                                onChange={handleAddHashtag}
-                                placeholder="örn: VizeHaftası, Teknoloji, Yazılım"
-                                style={{ ...styles.postTextarea, width: '100%', padding: '10px 14px', fontSize: '13px', boxSizing: 'border-box' }}
-                                autoFocus
-                            />
-                            <p style={{ margin: '4px 0 0 2px', fontSize: '11px', color: '#aaa', fontWeight: 500 }}>
-                                💡 Birden fazla etiket için araya virgül koyun. # işareti otomatik eklenir.
-                            </p>
+                            <input type="text" value={hashtagInput} onChange={handleAddHashtag} placeholder="örn: VizeHaftası, Teknoloji, Yazılım" style={{ ...styles.postTextarea, width: '100%', padding: '10px 14px', fontSize: '13px', boxSizing: 'border-box' }} autoFocus />
+                            <p style={{ margin: '4px 0 0 2px', fontSize: '11px', color: '#aaa', fontWeight: 500 }}>💡 Birden fazla etiket için araya virgül koyun. # işareti otomatik eklenir.</p>
                         </div>
                     )}
 
@@ -262,10 +246,10 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
             <div style={{ ...styles.postActions, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', backgroundColor: 'rgba(0,111,121,0.03)', padding: '10px 16px', borderRadius: '12px', marginTop: '12px' }}>
                 <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
                 <button onClick={() => fileInputRef.current?.click()} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: 'rgba(39,174,96,0.1)', color: '#27ae60' }}>
-                    <i className="feather-image" style={{ marginRight: '6px' }}></i><span className="d-none d-sm-inline">Fotoğraf</span>
+                    <i className="feather-image" style={{ marginRight: '6px' }}></i><span>Fotoğraf</span>
                 </button>
                 <button onClick={() => setShowHashtagInput(!showHashtagInput)} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: showHashtagInput ? 'rgba(52,152,219,0.2)' : 'rgba(52,152,219,0.1)', color: '#3498db' }}>
-                    <i className="feather-hash" style={{ marginRight: '6px' }}></i><span className="d-none d-sm-inline">Etiket Ekle</span>
+                    <i className="feather-hash" style={{ marginRight: '6px' }}></i><span>Etiket Ekle</span>
                 </button>
                 <button
                     onClick={handleShareClick}
@@ -279,7 +263,7 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
     );
 };
 
-// --- Ana Sayfa Bileşeni ---
+// ─── Ana Sayfa Bileşeni ──────────────────────────────────────────────────────
 export default function FeedPage() {
     const [postList, setPostList] = useState([]);
     const [storyList, setStoryList] = useState([]);
@@ -289,8 +273,9 @@ export default function FeedPage() {
     const [postSuccess, setPostSuccess] = useState('');
     const [trendRefreshKey, setTrendRefreshKey] = useState(0); // Her gonderide artar
 
-    // Profil istatistikleri state'i (Başlangıçta 0)
+    // Profil istatistikleri state'i
     const [stats, setStats] = useState({ followers: 0, following: 0, posts: 0 });
+    const navigate = useNavigate();
 
     const userEmail = localStorage.getItem('email') || 'kullanici@mtu.edu.tr';
     const userRole = localStorage.getItem('role') || 'Öğrenci';
@@ -311,29 +296,27 @@ export default function FeedPage() {
     const currentUserId = getUserIdFromToken();
 
     useEffect(() => {
-        // Backend API'den Gönderileri Çek (GERÇEK REACT & BACKEND ENTEGRASYONU)
         const loadPosts = async () => {
             try {
-                const apiPosts = await postService.getPosts();
+                const apiPosts = await postService.getPosts(currentUserId);
                 if (apiPosts && apiPosts.length > 0) {
                     const mapped = apiPosts.map(p => ({
                         id: p.id,
+                        userId: p.userId,
                         user: p.author || 'Kullanıcı',
-                        authorId: p.authorId,
-                        avatar: '/images/user-7.png',
+                        authorId: p.authorId || p.userId, // Eşref ve senin mantığını garantiye alır
+                        avatar: p.avatarUrl ? (p.avatarUrl.startsWith('http') ? p.avatarUrl : BACKEND_URL + p.avatarUrl) : '/images/user-7.png',
                         time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }),
                         role: 'Kullanıcı',
                         content: p.content,
-                        image: p.medias?.[0]?.url ? 'http://localhost:5181' + p.medias[0].url : null,
-                        likes: p.likeCount || 0,
-                        comments: p.commentCount || 0,
-                        liked: false,
+                        image: p.mediaUrl ? BACKEND_URL + p.mediaUrl : (p.medias?.[0]?.url ? BACKEND_URL + p.medias[0].url : null),
+                        likeCount: p.likeCount || 0,
+                        commentCount: p.commentCount || 0,
+                        isLikedByCurrentUser: p.isLikedByCurrentUser || false,
                     }));
                     setPostList(mapped);
                 }
-            } catch (e) {
-                console.warn('API erişilemedi.');
-            }
+            } catch (e) { console.warn('API erişilemedi.'); }
         };
 
         const loadStories = async () => {
@@ -342,8 +325,9 @@ export default function FeedPage() {
                 if (apiStories && apiStories.length > 0) {
                     const mapped = apiStories.map(s => ({
                         id: s.id,
+                        userId: s.userId,
                         name: s.userName,
-                        avatar: '/images/user-7.png',
+                        avatar: s.avatarUrl ? (s.avatarUrl.startsWith('http') ? s.avatarUrl : `${BACKEND_URL}${s.avatarUrl}`) : '/images/user-7.png',
                         bg: s.mediaPath,
                         text: s.textContent,
                         bgColor: s.backgroundColor || '#000',
@@ -351,9 +335,7 @@ export default function FeedPage() {
                     }));
                     setStoryList(mapped);
                 }
-            } catch (e) {
-                console.warn('Hikayeler yüklenemedi.');
-            }
+            } catch (e) { console.warn('Hikayeler yüklenemedi.'); }
         };
 
         loadPosts();
@@ -365,43 +347,44 @@ export default function FeedPage() {
         setFeedError('');
         setPostSuccess('');
         try {
-            // Etiketleri tekilleştirip içeriğe ekle (#selam seklinde)
             const uniqueHashtags = [...new Set(hashtags.map(t => t.toLowerCase()))];
-            const hashtagString = uniqueHashtags.length > 0
-                ? '\n' + uniqueHashtags.map(t => '#' + t).join(' ')
-                : '';
+            const hashtagString = uniqueHashtags.length > 0 ? '\n' + uniqueHashtags.map(t => '#' + t).join(' ') : '';
             const fullContent = (text + hashtagString).trim();
             if (!fullContent && !imageFile) return;
 
-            // Hata 5: imageFile ve hashtags'i gönder (FormData)
+            // Hata 5: imageFile ve hashtags'i doğrudan (FormData olarak) gönder (Senin altyapın)
             const newPost = await postService.createPost(currentUserId, fullContent || ' ', imageFile, uniqueHashtags);
 
             // Önizleme URL'i: backend'den gelen media URL ya da geçici blob
-            const previewImageUrl = newPost.medias?.[0]?.url
-                ? 'http://localhost:5181' + newPost.medias[0].url
-                : (imageFile ? URL.createObjectURL(imageFile) : null);
+            const previewImageUrl = newPost.mediaUrl 
+                ? BACKEND_URL + newPost.mediaUrl 
+                : (newPost.medias?.[0]?.url ? BACKEND_URL + newPost.medias[0].url : (imageFile ? URL.createObjectURL(imageFile) : null));
+
+            const currentUserAvatar = localStorage.getItem('avatarUrl');
 
             setPostList([{
                 id: newPost.id,
+                userId: currentUserId,
                 user: newPost.author || userEmail,
                 authorId: currentUserId,
-                avatar: '/images/user-7.png',
+                avatar: currentUserAvatar ? (currentUserAvatar.startsWith('http') ? currentUserAvatar : BACKEND_URL + currentUserAvatar) : '/images/user-7.png',
                 time: 'Şimdi',
                 role: userRole,
                 content: text,
                 image: previewImageUrl,
                 hashtags: uniqueHashtags,
-                likes: 0,
-                comments: 0,
-                liked: false,
+                likeCount: 0,
+                commentCount: 0,
+                isLikedByCurrentUser: false,
             }, ...postList]);
 
-            // Gönderi sayısını artır
+            // Gönderi sayısını artır ve sol menüyü uyar (Senin efsane event'in)
             setStats(prev => ({ ...prev, posts: prev.posts + 1 }));
-
             window.dispatchEvent(new Event('postCreated'));
+            
+            setPostSuccess('Gönderi başarıyla paylaşıldı!');
             setTimeout(() => setPostSuccess(''), 3000);
-            setTrendRefreshKey(prev => prev + 1); // Kampus Gundemini yenile
+            setTrendRefreshKey(prev => prev + 1);
         } catch (err) {
             setFeedError('Paylaşım yapılamadı. Lütfen tekrar deneyin.');
         } finally {
@@ -413,9 +396,7 @@ export default function FeedPage() {
         if (!window.confirm("Bu gönderiyi silmek istediğinize emin misiniz?")) return;
 
         try {
-            // Backend API DELETE Çağrısı (GERÇEK)
             await postService.deletePost(postId);
-            // Başarılı olursa UI'dan kaldır
             setPostList(postList.filter(p => p.id !== postId));
         } catch (err) {
             alert('Gönderi silinirken bir hata oluştu.');
@@ -425,7 +406,6 @@ export default function FeedPage() {
     const handleFollow = async (targetUserId) => {
         const isFollowing = followStates[targetUserId];
         try {
-            // Backend API Takiplesme (GERÇEK)
             if (isFollowing) {
                 await followService.unfollow(currentUserId, targetUserId);
                 setFollowStates(prev => ({ ...prev, [targetUserId]: false }));
@@ -435,33 +415,43 @@ export default function FeedPage() {
                 setFollowStates(prev => ({ ...prev, [targetUserId]: true }));
                 setStats(prev => ({ ...prev, following: prev.following + 1 }));
             }
-        } catch (err) {
-            console.error('Takip servisinde hata oluştu', err);
-        }
-    };
-
-    const handleLike = (id) => {
-        setPostList(prev => prev.map(p => p.id === id ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 } : p));
+        } catch (err) { console.error('Takip servisinde hata oluştu', err); }
     };
 
     const handleStoryUpload = async (file, text, bgColor, textColor) => {
         try {
             const result = await storyService.uploadStory(currentUserId, file, text, bgColor, textColor);
             if (result && result.story) {
-                const newStory = {
+                setStoryList([{
                     id: result.story.id,
+                    userId: currentUserId,
                     name: userEmail,
-                    avatar: '/images/user-7.png',
+                    avatar: localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png",
                     bg: result.story.mediaPath,
                     text: result.story.textContent,
                     bgColor: result.story.backgroundColor,
                     textColor: result.story.textColor
-                };
-                setStoryList([newStory, ...storyList]);
+                }, ...storyList]);
             }
         } catch (e) {
             console.error('Hikaye yüklenirken hata', e);
-            alert("Hikaye yüklenemedi.");
+            alert('Hikaye yüklenemedi.');
+        }
+    };
+
+    const handleDeleteStory = async (storyId) => {
+        try {
+            await storyService.deleteStory(storyId, currentUserId);
+            setStoryList(storyList.filter(s => s.id !== storyId));
+        } catch (e) {
+            console.error('Hikaye silinirken hata', e);
+            alert('Hikaye silinemedi.');
+        }
+    };
+
+    const handleNavigateToProfile = (userId) => {
+        if(userId) {
+            navigate(`/profile?userId=${userId}`);
         }
     };
 
@@ -469,7 +459,13 @@ export default function FeedPage() {
         <div style={styles.page}>
             <LeftSidebar userEmail={userEmail} userRole={userRole} stats={stats} />
             <main style={styles.feedArea}>
-                <StoryCarousel stories={storyList} onStoryUpload={handleStoryUpload} />
+                <StoryCarousel 
+                    stories={storyList} 
+                    onStoryUpload={handleStoryUpload} 
+                    currentUserId={currentUserId}
+                    onDeleteStory={handleDeleteStory}
+                    onNavigateToProfile={handleNavigateToProfile}
+                />
                 <CreatePostBox onShare={handleShare} isPosting={isPosting} error={feedError} success={postSuccess} />
 
                 {feedError && <p style={{ color: '#e74c3c', textAlign: 'center', margin: '20px 0' }}>{feedError}</p>}
@@ -483,9 +479,8 @@ export default function FeedPage() {
                         <PostCard
                             key={post.id}
                             post={post}
-                            onLike={handleLike}
                             onDelete={handleDeletePost}
-                            isOwnPost={post.authorId === currentUserId}
+                            isOwnPost={post.authorId === currentUserId || post.userId === currentUserId}
                         />
                     ))
                 )}
@@ -495,44 +490,20 @@ export default function FeedPage() {
     );
 }
 
-// --- CSS Modülleri (React Inline Styles) ---
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = {
     page: { display: 'flex', gap: '20px', maxWidth: '1400px', margin: '0 auto', padding: '80px 20px 40px', minHeight: '100vh', backgroundColor: '#f0f2f5', alignItems: 'flex-start' },
-    leftSidebar: { width: '260px', flexShrink: 0, position: 'sticky', top: '80px' },
     feedArea: { flex: 1, minWidth: 0, maxWidth: '640px', margin: '0 auto' },
-    rightSidebar: { width: '280px', flexShrink: 0, position: 'sticky', top: '80px' },
     card: { backgroundColor: '#fff', borderRadius: '16px', padding: '20px', marginBottom: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-    profileCard: { backgroundColor: '#fff', borderRadius: '16px', marginBottom: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-    profileBanner: { height: '60px', background: 'linear-gradient(135deg, #006F79 0%, var(--mtu-primary-hover) 100%)' },
-    profileAvatarWrap: { display: 'flex', justifyContent: 'center', marginTop: '-24px' },
-    profileAvatar: { width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
-    profileName: { margin: '8px 0 2px', fontWeight: 700, fontSize: '14px', color: '#1a1a2e' },
-    profileRole: { fontSize: '11px', color: '#006F79', backgroundColor: 'rgba(0,111,121,0.08)', padding: '2px 10px', borderRadius: '20px', fontWeight: 600 },
-    profileStats: { display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f0f2f5' },
-    stat: { textAlign: 'center', fontSize: '11px', color: '#888' },
-    statDivider: { width: '1px', height: '30px', backgroundColor: '#f0f2f5' },
-    navCard: { backgroundColor: '#fff', borderRadius: '16px', padding: '12px 8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-    navCaption: { fontSize: '10px', fontWeight: 700, color: '#bbb', letterSpacing: '1px', padding: '4px 12px 8px', margin: 0 },
-    navItem: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderRadius: '10px', color: '#555', textDecoration: 'none', fontSize: '13px', fontWeight: 500, transition: 'all 0.15s' },
-    navItemActive: { backgroundColor: 'rgba(0,111,121,0.08)', color: '#006F79', fontWeight: 700 },
-    navIcon: { width: '20px', marginRight: '12px', fontSize: '16px', color: '#999' },
-    navDot: { width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#006F79', marginLeft: 'auto' },
-    storiesRow: { display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' },
-    storyAddCard: { width: '100px', height: '160px', borderRadius: '12px', border: '2px dashed #006F79', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', backgroundColor: 'rgba(0,111,121,0.02)' },
-    storyAddIcon: { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', boxShadow: '0 4px 10px rgba(0,111,121,0.3)' },
-    storyCard: { width: '100px', height: '160px', borderRadius: '12px', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', overflow: 'hidden', flexShrink: 0, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
-    storyGradient: { position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,111,121,0.9) 0%, transparent 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '12px' },
-    storyAvatar: { width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginBottom: '8px' },
-    storyLabel: { color: '#fff', fontSize: '11px', fontWeight: 600, margin: 0, textShadow: '0 1px 2px rgba(0,0,0,0.5)' },
-    postTextarea: { border: '1px solid rgba(0,111,121,0.1)', borderRadius: '12px', padding: '14px', fontSize: '14px', outline: 'none', resize: 'none', fontFamily: 'inherit', backgroundColor: '#f9fbfc', color: '#1a1a2e' },
-    postActions: { display: 'flex', gap: '10px' },
-    postActionBtn: { display: 'flex', alignItems: 'center', border: 'none', background: 'transparent', color: '#555', fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: '8px 12px', borderRadius: '8px', transition: 'background 0.2s' },
-    actionBtn: { display: 'flex', alignItems: 'center', border: 'none', background: 'transparent', color: '#555', fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: '8px 16px', borderRadius: '8px', transition: 'all 0.2s' },
-    hashtagPill: { backgroundColor: 'rgba(0,111,121,0.1)', color: '#006F79', fontSize: '12.5px', fontWeight: 700, padding: '4px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center' },
-    sideCard: { backgroundColor: '#fff', borderRadius: '16px', padding: '16px', marginBottom: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-    sideCardTitle: { fontSize: '13px', fontWeight: 700, color: '#1a1a2e', marginBottom: '14px', display: 'flex', alignItems: 'center' },
-    eventItem: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' },
-    eventDate: { width: '46px', height: '46px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    suggestionItem: { display: 'flex', alignItems: 'center', marginBottom: '12px' },
-    followBtn: { border: '1.5px solid #006F79', borderRadius: '20px', padding: '4px 12px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' },
+    postTextarea: { border: '1px solid #e0e0e0', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', lineHeight: '1.6', resize: 'none', outline: 'none', backgroundColor: '#fafafa', fontFamily: 'inherit', transition: 'border-color 0.2s' },
+    postActions: { display: 'flex', gap: '10px', marginTop: '12px' },
+    postActionBtn: { border: 'none', padding: '8px 14px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, transition: 'all 0.2s' },
+    hashtagPill: { display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(0,111,121,0.1)', color: '#006F79', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 },
+    storiesRow: { display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' },
+    storyCard: { minWidth: '90px', height: '140px', borderRadius: '14px', backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer', position: 'relative', overflow: 'hidden', flexShrink: 0, transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
+    storyAddCard: { minWidth: '90px', height: '140px', borderRadius: '14px', border: '2px dashed #006F79', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: '8px', flexShrink: 0, backgroundColor: 'rgba(0,111,121,0.04)', transition: 'background 0.2s' },
+    storyAddIcon: { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    storyGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 6px 6px', background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+    storyAvatar: { width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', marginBottom: '4px' },
+    storyLabel: { color: '#fff', fontSize: '10px', fontWeight: 700, margin: 0, textAlign: 'center', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', width: '100%' },
 };

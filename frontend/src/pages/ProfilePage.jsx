@@ -104,15 +104,16 @@ export default function ProfilePage() {
     const [cropperSrc, setCropperSrc] = useState(null);
     const [cropperMode, setCropperMode] = useState('avatar');
 
-    useEffect(() => { loadProfile(); /* eslint-disable-next-line */ }, [id]);
+    useEffect(() => { loadProfile(); /* eslint-disable-next-line */ }, [id, currentUserId]);
 
     const loadProfile = async () => {
         setLoading(true);
         try {
             const targetId = parseInt(id) || currentUserId;
+            if (!targetId) return; // Eşref'in güvenlik kontrolü
             const data = await profileService.getProfile(targetId);
 
-            // Projeler ve sertifikalar (Student Profile) için ek istek
+            // Projeler ve sertifikalar (Student Profile) için ek istek (Senin kodun)
             try {
                 const studentProfileRes = await axios.get(`${API_BASE}/api/profiles/${targetId}`);
                 if (studentProfileRes.data) {
@@ -252,6 +253,11 @@ export default function ProfilePage() {
             try {
                 const result = await profileService.uploadAvatar(currentUserId, file);
                 setProfile(prev => ({ ...prev, avatarUrl: result.avatarUrl }));
+                
+                // İki mantık birleştirildi: Avatarı lokale kaydet ve bildirimi göster
+                if (result.avatarUrl) {
+                    localStorage.setItem('avatarUrl', result.avatarUrl);
+                }
                 toast.success('Profil fotoğrafı güncellendi!');
             } catch (err) { console.error(err); }
             finally { setAvatarUploading(false); }
@@ -271,6 +277,7 @@ export default function ProfilePage() {
         try {
             await profileService.removeAvatar(currentUserId);
             setProfile(prev => ({ ...prev, avatarUrl: null }));
+            localStorage.removeItem('avatarUrl');
         } catch (err) { console.error(err); }
     };
 

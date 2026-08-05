@@ -53,8 +53,13 @@ const currentUserId = getUserIdFromToken();
                 const data = await profileService.getProfile(currentUserId);
                 if (!data) return;
 
-                if (data.avatarUrl) setAvatarUrl(`http://localhost:5181${data.avatarUrl}`);
+                // Eşref'in avatar kaydetme ve senin güvenli URL atama mantığın birleşti
+                if (data.avatarUrl) {
+                    setAvatarUrl(`http://localhost:5181${data.avatarUrl}`);
+                    localStorage.setItem('avatarUrl', data.avatarUrl);
+                }
 
+                // Senin localName çekme ve atama mantığın korundu
                 const localName = localStorage.getItem('displayName');
                 if (data.displayName) setDisplayName(data.displayName);
                 else if (data.firstName) setDisplayName(`${data.firstName} ${data.lastName || ''}`.trim());

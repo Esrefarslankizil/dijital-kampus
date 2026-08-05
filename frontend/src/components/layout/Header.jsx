@@ -281,13 +281,23 @@ function Header({ onOpenLogin, onOpenRegister }) {
 
                     {/* PROFIL AVATARI VE SIFIRLANMIŞ EŞİT MENÜ */}
                     <div className="d-none d-md-block ms-1" style={{ position: 'relative' }}>
-                        <div
-                            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                            style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #006F79, #00b4d8)', border: '2px solid var(--mtu-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15 }}
-                            title={headerDisplayName}
-                        >
-                            {headerDisplayName.charAt(0).toUpperCase()}
-                        </div>
+                        {localStorage.getItem('avatarUrl') ? (
+                            <img 
+                                src={localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `http://localhost:5181${localStorage.getItem('avatarUrl')}`} 
+                                alt="profil" 
+                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mtu-primary)', cursor: 'pointer' }} 
+                                title={headerDisplayName}
+                            />
+                        ) : (
+                            <div
+                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #006F79, #00b4d8)', border: '2px solid var(--mtu-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15 }}
+                                title={headerDisplayName}
+                            >
+                                {headerDisplayName.charAt(0).toUpperCase()}
+                            </div>
+                        )}
 
                         {isProfileMenuOpen && (
                             <div className="custom-dropdown-menu">

@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { postService } from '../../services/api';
 
-const PostCard = ({ post, onLike, onDelete, isOwnPost }) => {
+const PostCard = ({ post, onDelete, isOwnPost }) => {
     const [showComments, setShowComments] = useState(false);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [loadingComments, setLoadingComments] = useState(false);
     const [isPosting, setIsPosting] = useState(false);
-    const [commentCount, setCommentCount] = useState(post.comments || 0);
+    const [commentCount, setCommentCount] = useState(post.commentCount || post.comments || 0);
+    const navigate = useNavigate();
+
+    // Beğeni state'i — sayfa yenilenince prop'tan gelen değerle başlar (backend'den geliyor)
+    const [liked, setLiked] = useState(post.isLikedByCurrentUser || post.liked || false);
+    const [likeCount, setLikeCount] = useState(post.likeCount || post.likes || 0);
+    const [likePending, setLikePending] = useState(false);
 
     const getUserIdFromToken = () => {
         try {
@@ -19,6 +26,28 @@ const PostCard = ({ post, onLike, onDelete, isOwnPost }) => {
             const payload = JSON.parse(atob(token.split('.')[1]));
             return parseInt(payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || 1;
         } catch { return 1; }
+    };
+
+    const handleLike = async () => {
+        if (likePending) return;
+        setLikePending(true);
+        // Optimistic update
+        const newLiked = !liked;
+        setLiked(newLiked);
+        setLikeCount(prev => newLiked ? prev + 1 : prev - 1);
+        try {
+            const userId = getUserIdFromToken();
+            const result = await postService.likePost(post.id, userId);
+            // Sunucudan gelen gerçek değerle senkronize et
+            setLiked(result.liked);
+            setLikeCount(result.likeCount);
+        } catch {
+            // Hata durumunda geri al
+            setLiked(liked);
+            setLikeCount(likeCount);
+        } finally {
+            setLikePending(false);
+        }
     };
 
     const handleToggleComments = async () => {
@@ -60,10 +89,15 @@ const PostCard = ({ post, onLike, onDelete, isOwnPost }) => {
     return (
         <div style={{ ...styles.card, borderTop: '4px solid #006F79' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
-                <img src={post.avatar || '/images/user-7.png'} alt={post.user} style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', marginRight: '12px', border: '2px solid #006F79', padding: '2px' }} />
-                <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontWeight: 800, color: '#006F79', fontSize: '15px' }}>{post.user}</p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#888', fontWeight: 600 }}>{post.role} · {post.time}</p>
+                <div 
+                    onClick={() => navigate(`/profile/${post.userId || ''}`)}
+                    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: 1 }}
+                >
+                    <img src={post.avatar || '/images/user-7.png'} alt={post.user} style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', marginRight: '12px', border: '2px solid #006F79', padding: '2px' }} />
+                    <div>
+                        <p style={{ margin: 0, fontWeight: 800, color: '#006F79', fontSize: '15px' }}>{post.user || post.author}</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: '#888', fontWeight: 600 }}>{post.role} · {post.time}</p>
+                    </div>
                 </div>
                 {isOwnPost ? (
                     <button onClick={() => onDelete && onDelete(post.id)} style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: '18px', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(231,76,60,0.1)' }}>
@@ -87,9 +121,20 @@ const PostCard = ({ post, onLike, onDelete, isOwnPost }) => {
             )}
 
             <div style={{ borderTop: '1px solid #f0f2f5', paddingTop: '12px', display: 'flex', gap: '12px' }}>
-                <button onClick={() => onLike && onLike(post.id)} style={{ ...styles.actionBtn, backgroundColor: post.liked ? 'rgba(0,111,121,0.1)' : 'rgba(0,111,121,0.03)', color: post.liked ? '#006F79' : '#555', fontWeight: post.liked ? 700 : 600 }}>
-                    <i className="feather-thumbs-up" style={{ marginRight: '6px', color: post.liked ? '#006F79' : '#888' }}></i>
-                    {post.likes || 0} Beğeni
+                <button
+                    onClick={handleLike}
+                    disabled={likePending}
+                    style={{
+                        ...styles.actionBtn,
+                        backgroundColor: liked ? 'rgba(0,111,121,0.1)' : 'rgba(0,111,121,0.03)',
+                        color: liked ? '#006F79' : '#555',
+                        fontWeight: liked ? 700 : 600,
+                        transition: 'all 0.2s',
+                        opacity: likePending ? 0.7 : 1
+                    }}
+                >
+                    <i className="feather-thumbs-up" style={{ marginRight: '6px', color: liked ? '#006F79' : '#888' }}></i>
+                    {likeCount} Beğeni
                 </button>
                 <button onClick={handleToggleComments} style={{ ...styles.actionBtn, backgroundColor: 'rgba(0,0,0,0.02)' }}><i className="feather-message-circle" style={{ marginRight: '6px', color: '#888' }}></i>{commentCount} Yorum</button>
                 <button style={{ ...styles.actionBtn, backgroundColor: 'rgba(0,0,0,0.02)', marginLeft: 'auto' }}><i className="feather-share-2" style={{ marginRight: '6px', color: '#888' }}></i>Paylaş</button>
@@ -104,7 +149,7 @@ const PostCard = ({ post, onLike, onDelete, isOwnPost }) => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {comments.map((comment, index) => (
                                 <div key={comment.id || index} style={{ display: 'flex', gap: '10px' }}>
-                                    <img src="/images/user-7.png" alt="user" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                                    <img src={comment.avatarUrl ? (comment.avatarUrl.startsWith('http') ? comment.avatarUrl : `http://localhost:5181${comment.avatarUrl}`) : "/images/user-7.png"} alt="user" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                                     <div style={{ backgroundColor: '#f0f2f5', padding: '10px 14px', borderRadius: '16px', flex: 1 }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
                                             <span style={{ fontWeight: 700, fontSize: '13px', color: '#1a1a2e' }}>{comment.author}</span>
@@ -119,7 +164,7 @@ const PostCard = ({ post, onLike, onDelete, isOwnPost }) => {
                     )}
                     
                     <form onSubmit={handleCommentSubmit} style={{ display: 'flex', gap: '10px', marginTop: '16px', alignItems: 'center' }}>
-                        <img src="/images/user-7.png" alt="me" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
+                        <img src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `http://localhost:5181${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} alt="me" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
                         <input 
                             type="text" 
                             placeholder="Bir yorum yaz..." 
@@ -144,3 +189,6 @@ const styles = {
 };
 
 export default PostCard;
+
+
+

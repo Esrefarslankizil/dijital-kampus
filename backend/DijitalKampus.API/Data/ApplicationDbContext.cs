@@ -65,6 +65,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
         modelBuilder.Entity<Post>(entity =>
         {
             entity.HasIndex(p => new { p.DeletedAt, p.CreatedAt });
+            entity.HasQueryFilter(p => p.DeletedAt == null); // Silinmiş gönderileri filtrele
         });
 
         // Bileşik anahtar (composite key) ve silme davranışları

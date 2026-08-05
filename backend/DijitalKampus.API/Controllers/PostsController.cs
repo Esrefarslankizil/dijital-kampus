@@ -35,7 +35,7 @@ namespace DijitalKampus.API.Controllers
 
         // GET: api/posts  — Tüm gönderiler, FullName ile
         [HttpGet]
-        public async Task<IActionResult> GetPosts()
+        public async Task<IActionResult> GetPosts([FromQuery] int userId = 0)
         {
             var posts = await _context.Posts
                 .Where(p => p.DeletedAt == null)
@@ -47,9 +47,10 @@ namespace DijitalKampus.API.Controllers
                 .Select(p => new
                 {
                     p.Id,
+                    UserId = p.UserId,
                     p.Content,
                     p.CreatedAt,
-                    // Hata 3 düzeltmesi: Email yerine FullName kullan
+                    // Senin düzeltmen: Email yerine FullName kullan
                     Author = (p.User != null && !string.IsNullOrWhiteSpace(p.User.FirstName))
                         ? $"{p.User.FirstName} {p.User.LastName}".Trim()
                         : (p.User != null ? p.User.UserName ?? p.User.Email ?? "Anonim" : "Anonim Kullanıcı"),
@@ -57,6 +58,8 @@ namespace DijitalKampus.API.Controllers
                     AvatarUrl = p.User != null ? p.User.AvatarUrl : null,
                     LikeCount = p.PostLikes.Count,
                     CommentCount = p.Comments.Count,
+                    // Eşref'in eklediği faydalı özellik:
+                    IsLikedByCurrentUser = userId > 0 && p.PostLikes.Any(l => l.UserId == userId),
                     Medias = p.PostMedias.Select(m => new { m.Url })
                 })
                 .ToListAsync();
@@ -64,7 +67,7 @@ namespace DijitalKampus.API.Controllers
             return Ok(posts);
         }
 
-        // GET: api/posts/user/{userId}  — Hata 4 düzeltmesi: Kullanıcıya ait gönderiler
+        // GET: api/posts/user/{userId}  — Kullanıcıya ait gönderiler
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetUserPosts(int userId)
         {
@@ -94,7 +97,7 @@ namespace DijitalKampus.API.Controllers
             return Ok(posts);
         }
 
-        // POST: api/posts  — Hata 5 düzeltmesi: multipart/form-data ile fotoğraf + etiket desteği
+        // POST: api/posts  — multipart/form-data ile fotoğraf + etiket desteği
         [HttpPost]
         public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest request)
         {
@@ -117,7 +120,7 @@ namespace DijitalKampus.API.Controllers
             {
                 await _context.SaveChangesAsync();
 
-                // Fotoğraf varsa kaydet
+                // Fotoğraf varsa kaydet (Senin mantığın)
                 if (request.Image != null && request.Image.Length > 0)
                 {
                     var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
@@ -138,8 +141,14 @@ namespace DijitalKampus.API.Controllers
                         await _context.SaveChangesAsync();
                     }
                 }
+                // Eşref'in mantığı (Alternatif URL girişi)
+                else if (!string.IsNullOrEmpty(request.MediaUrl))
+                {
+                    _context.PostMedias.Add(new PostMedia { PostId = newPost.Id, Url = request.MediaUrl });
+                    await _context.SaveChangesAsync();
+                }
 
-                // Kullanıcı bilgisini çek
+                // Kullanıcı bilgisini çek (İsimlerin patlamaması için senin dinamik kodun)
                 var user = await _context.Users.FindAsync(userId);
                 string authorName = (user != null && !string.IsNullOrWhiteSpace(user.FirstName))
                     ? $"{user.FirstName} {user.LastName}".Trim()
@@ -166,6 +175,33 @@ namespace DijitalKampus.API.Controllers
             }
         }
 
+        // POST: api/posts/upload-image
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Dosya boş olamaz." });
+
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+            if (!allowedTypes.Contains(file.ContentType))
+                return BadRequest(new { message = "Sadece resim dosyası yüklenebilir." });
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "posts");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var ext = Path.GetExtension(file.FileName);
+            var fileName = Guid.NewGuid().ToString() + ext;
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var url = "/uploads/posts/" + fileName;
+            return Ok(new { url });
+        }
+
         // DELETE: api/posts/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePost(int id)
@@ -178,6 +214,30 @@ namespace DijitalKampus.API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Gönderi başarıyla silindi." });
+        }
+
+        // POST: api/posts/{id}/like
+        [HttpPost("{id}/like")]
+        public async Task<IActionResult> ToggleLike(int id, [FromBody] LikeRequest request)
+        {
+            var userId = request.UserId > 0 ? request.UserId : 1;
+            var existing = await _context.PostLikes
+                .FirstOrDefaultAsync(l => l.PostId == id && l.UserId == userId);
+
+            if (existing != null)
+            {
+                _context.PostLikes.Remove(existing);
+                await _context.SaveChangesAsync();
+                var count = await _context.PostLikes.CountAsync(l => l.PostId == id);
+                return Ok(new { liked = false, likeCount = count });
+            }
+            else
+            {
+                _context.PostLikes.Add(new PostLike { PostId = id, UserId = userId });
+                await _context.SaveChangesAsync();
+                var count = await _context.PostLikes.CountAsync(l => l.PostId == id);
+                return Ok(new { liked = true, likeCount = count });
+            }
         }
 
         // GET: api/posts/{id}/comments
@@ -193,8 +253,10 @@ namespace DijitalKampus.API.Controllers
                     c.Id,
                     c.Content,
                     c.CreatedAt,
+                    UserId = c.User.Id,
                     Author = string.IsNullOrEmpty(c.User.FirstName) ? c.User.Email : c.User.FirstName + " " + c.User.LastName,
-                    Role = c.User.Role
+                    Role = c.User.Role,
+                    AvatarUrl = c.User.AvatarUrl
                 })
                 .ToListAsync();
 
@@ -225,14 +287,17 @@ namespace DijitalKampus.API.Controllers
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 
-            // Dönüşte author bilgisini de doldurmak için User'ı manuel de alabiliriz veya basit dönebiliriz.
+            var user = await _context.Users.FindAsync(userId);
+
             return Ok(new
             {
                 comment.Id,
                 comment.Content,
                 comment.CreatedAt,
-                Author = "Kullanıcı", // Yorumu ekleyen kullanıcı bilgisi
-                Role = "Öğrenci"
+                UserId = user?.Id,
+                Author = user != null ? (string.IsNullOrEmpty(user.FirstName) ? user.Email : user.FirstName + " " + user.LastName) : "Kullanıcı",
+                Role = user?.Role,
+                AvatarUrl = user?.AvatarUrl
             });
         }
     }
@@ -241,9 +306,11 @@ namespace DijitalKampus.API.Controllers
     {
         public int UserId { get; set; }
         public string Content { get; set; } = string.Empty;
-        // Hata 5: Fotoğraf ve etiket alanları eklendi
+        // Senin eklediğin
         public IFormFile? Image { get; set; }
         public string? Hashtags { get; set; }
+        // Eşref'in eklediği
+        public string? MediaUrl { get; set; }
     }
 
     public class CreateCommentRequest
@@ -251,5 +318,9 @@ namespace DijitalKampus.API.Controllers
         public int UserId { get; set; }
         public string Content { get; set; } = string.Empty;
     }
-}
 
+    public class LikeRequest
+    {
+        public int UserId { get; set; }
+    }
+}
