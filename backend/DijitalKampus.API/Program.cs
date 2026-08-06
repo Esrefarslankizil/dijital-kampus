@@ -67,33 +67,13 @@ using (var scope = app.Services.CreateScope())
     }
     if (logsToUpdate.Any()) db.SaveChanges();
 
+    // Sadece admin kullanıcısını seed et
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    var testEmail = "test@mtu.edu.tr";
-    if (!db.Users.IgnoreQueryFilters().Any(u => u.Email == testEmail))
-    {
-        var testUser = new User { UserName = testEmail, Email = testEmail, Role = "Ogrenci", IsApproved = true, CreatedAt = DateTime.UtcNow };
-        await userManager.CreateAsync(testUser, "Sifre123!");
-    }
-
-    var test2Email = "test2@mtu.edu.tr";
-    if (!db.Users.IgnoreQueryFilters().Any(u => u.Email == test2Email))
-    {
-        var test2User = new User { UserName = test2Email, Email = test2Email, Role = "Ogrenci", IsApproved = true, CreatedAt = DateTime.UtcNow };
-        await userManager.CreateAsync(test2User, "Sifre123!");
-    }
-
-    var test3Email = "test3@mtu.edu.tr";
-
     var adminEmail = "admin@mtu.edu.tr";
     if (!db.Users.IgnoreQueryFilters().Any(u => u.Email == adminEmail))
     {
         var adminUser = new User { UserName = adminEmail, Email = adminEmail, Role = "Admin", IsApproved = true, CreatedAt = DateTime.UtcNow };
         await userManager.CreateAsync(adminUser, "Sifre123!");
-    }
-    if (!db.Users.IgnoreQueryFilters().Any(u => u.Email == test3Email))
-    {
-        var test3User = new User { UserName = test3Email, Email = test3Email, Role = "Ogrenci", IsApproved = true, CreatedAt = DateTime.UtcNow };
-        await userManager.CreateAsync(test3User, "Sifre123!");
     }
 }
 
