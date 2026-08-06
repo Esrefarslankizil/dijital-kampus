@@ -72,7 +72,7 @@ namespace DijitalKampus.API.Controllers
             return CreatedAtAction(nameof(GetProfileById), new { id = newProfile.UserId }, newProfile);
         }
 
-        // MEVCUT BİR PROFİLİ GÜNCELLEME (UPDATE)
+        // MEVCUT BİR PROFİLİ GÜNCELLEME VEYA OLUŞTURMA (UPSERT)
         // PUT: api/profiles/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProfile(int id, [FromBody] StudentProfile updatedProfile)
@@ -82,25 +82,48 @@ namespace DijitalKampus.API.Controllers
                 return BadRequest(new { message = "URL'deki ID ile profil ID'si eşleşmiyor." });
             }
 
-            _context.Entry(updatedProfile).State = EntityState.Modified;
+            // Profil var mı kontrol et
+            var existing = await _context.StudentProfiles.FirstOrDefaultAsync(p => p.UserId == id);
 
-            try
+            if (existing == null)
             {
-                await _context.SaveChangesAsync();
+                // 🚀 DÜZELTİLEN KISIM BURASI 🚀
+                // Veritabanında hiç bölüm yoksa önce garanti olsun diye genel bir bölüm oluştur
+                var firstDept = await _context.Departments.FirstOrDefaultAsync();
+                if (firstDept == null)
+                {
+                    firstDept = new Department { Name = "Genel Bölüm" };
+                    _context.Departments.Add(firstDept);
+                    await _context.SaveChangesAsync(); 
+                }
+
+                // Frontend'den gelen kirli objeyi (updatedProfile) değil, 
+                // SADECE ihtiyacımız olan alanları alıp tertemiz yeni bir profil oluşturuyoruz!
+                var safeNewProfile = new StudentProfile
+                {
+                    UserId = id,
+                    Biography = updatedProfile.Biography,
+                    Grade = updatedProfile.Grade,
+                    TargetPosition = updatedProfile.TargetPosition,
+                    TargetSector = updatedProfile.TargetSector,
+                    DepartmentId = updatedProfile.DepartmentId > 0 ? updatedProfile.DepartmentId : firstDept.Id
+                };
+
+                _context.StudentProfiles.Add(safeNewProfile);
             }
-            catch (DbUpdateConcurrencyException)
+            else
             {
-                if (!_context.StudentProfiles.Any(e => e.UserId == id))
-                {
-                    return NotFound(new { message = "Güncellenecek profil bulunamadı." });
-                }
-                else
-                {
-                    throw;
-                }
+                // Profil zaten varsa sadece izin verilen alanları güncelle
+                if (updatedProfile.Biography != null) existing.Biography = updatedProfile.Biography;
+                if (updatedProfile.Grade != null) existing.Grade = updatedProfile.Grade;
+                if (updatedProfile.TargetSector != null) existing.TargetSector = updatedProfile.TargetSector;
+                if (updatedProfile.TargetPosition != null) existing.TargetPosition = updatedProfile.TargetPosition;
+                if (updatedProfile.DepartmentId > 0) existing.DepartmentId = updatedProfile.DepartmentId;
             }
 
-            return NoContent(); 
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Profil başarıyla güncellendi." });
         }
 
         // MEVCUT BİR PROFİLİ SİLME (DELETE)

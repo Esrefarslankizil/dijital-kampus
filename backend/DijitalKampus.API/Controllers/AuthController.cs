@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore; // Veritabanı sorguları (FirstOrDefaultAsync) için eklendi
 using DijitalKampus.API.Models;
 using DijitalKampus.API.Data;
 
@@ -35,7 +36,7 @@ public class AuthController : ControllerBase
         if (!user.IsApproved)
             return Unauthorized(new { message = "Hesabınız henüz onaylanmamış." });
 
-        // 2. Şifreyi doğrula (Eski sistemde şifre kontrolü bile yoktu, artık var!)
+        // 2. Şifreyi doğrula
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
         
         if (!result.Succeeded)
@@ -57,14 +58,14 @@ public class AuthController : ControllerBase
         // 1. Yeni bir kullanıcı profili hazırlıyoruz
         var newUser = new User
         {
-            UserName = request.Email, // Identity arka planda UserName kullanmayı sever, biz e-postayı atıyoruz.
+            UserName = request.UserName, 
             Email = request.Email,
-            Role = "Student", // Varsayılan olarak herkes Öğrenci kayıt olsun
+            Role = "Student", 
             CreatedAt = DateTime.UtcNow,
             IsApproved = true
         };
 
-        // 2. UserManager (Güvenlik Şefimiz) bu kullanıcıyı veritabanına ekliyor ve şifresini otomatik kriptoluyor!
+        // 2. UserManager bu kullanıcıyı veritabanına ekliyor
         var result = await _userManager.CreateAsync(newUser, request.Password);
 
         if (!result.Succeeded)
@@ -74,7 +75,29 @@ public class AuthController : ControllerBase
         }
 
         _context.AuditLogs.Add(new AuditLog { AdminEmail = newUser.Email, Action = "KAYIT_OLUNDU", TargetUserId = newUser.Id, Details = $"{newUser.Email} sisteme kayıt oldu." });
+
+        // 🚀 İŞTE HAYAT KURTARAN DOKUNUŞ BURASI 🚀
+        // 1. Veritabanında hiç bölüm var mı diye kontrol ediyoruz
+        var department = await _context.Departments.FirstOrDefaultAsync();
+        
+        // 2. Eğer veritabanını yeni sıfırladıysak ve tablo bomboşsa, geçici bir bölüm oluşturuyoruz
+        if (department == null)
+        {
+            department = new Department { Name = "Genel Bölüm" }; 
+            _context.Departments.Add(department);
+            await _context.SaveChangesAsync();
+        }
+
+        // 3. Kullanıcıya artık %100 var olan bir bölümün ID'si ile profil açıyoruz
+        var studentProfile = new StudentProfile
+        {
+            UserId = newUser.Id,          
+            DepartmentId = department.Id  
+        };
+
+        _context.StudentProfiles.Add(studentProfile);
         await _context.SaveChangesAsync();
+        // 🚀 BİTTİ 🚀
 
         return Ok(new { message = "Kayıt başarıyla oluşturuldu! Lütfen giriş yapın." });
     }
@@ -95,6 +118,7 @@ public class LoginRequest
 public class RegisterRequest
 {
     public string Email { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
 

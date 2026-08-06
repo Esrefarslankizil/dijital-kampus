@@ -63,6 +63,11 @@ public class ProfileController : ControllerBase
             ? user.UserName ?? user.Email ?? "Kullanıcı"
             : $"{user.FirstName} {user.LastName}".Trim();
 
+        // Biyografiyi StudentProfile'dan çek
+        var studentProfile = await _context.StudentProfiles
+            .FirstOrDefaultAsync(sp => sp.UserId == id);
+        string biography = studentProfile?.Biography ?? string.Empty;
+
         return Ok(new
         {
             user.Id,
@@ -74,7 +79,8 @@ public class ProfileController : ControllerBase
             DisplayName = displayName,
             AvatarUrl = user.AvatarUrl,
             CoverUrl = user.CoverUrl,
-            Bio = "Merhaba! Dijital Kampüs'e yeni katıldım.",
+            Bio = biography,
+            Biography = biography,
             DepartmentOrTitle = departmentOrTitle,
             FollowersCount = user.Followers.Count,
             FollowingCount = user.FollowedUsers.Count,
