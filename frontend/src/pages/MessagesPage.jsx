@@ -116,9 +116,17 @@ export default function MessagesPage() {
         }
     };
 
-    const handleSelectConversation = (conv) => {
+    const handleSelectConversation = async (conv) => {
         setActiveConversation(conv);
         loadMessages(conv.id);
+        if (conv.unreadCount > 0) {
+            try {
+                await chatService.markAsRead(conv.id);
+                setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unreadCount: 0 } : c));
+            } catch (error) {
+                console.error("Mesajlar okundu işaretlenemedi", error);
+            }
+        }
     };
 
     const handleSendMessage = async (e) => {
@@ -146,12 +154,12 @@ export default function MessagesPage() {
                     <div style={styles.conversationList}>
                         <div style={styles.listHeader}>
                             <h4 style={{ margin: 0, fontWeight: 700, fontSize: '20px' }}>Mesajlar</h4>
-                            <i className="feather-edit" style={{ fontSize: '18px', color: '#006F79', cursor: 'pointer' }}></i>
+                            <i className="feather-edit" style={{ fontSize: '18px', color: '#262F59', cursor: 'pointer' }}></i>
                         </div>
                         
                         <div style={styles.listBody}>
                             {conversations.length === 0 ? (
-                                <p style={{ padding: '20px', textAlign: 'center', color: '#888', fontSize: '14px' }}>Henüz mesajınız yok.</p>
+                                <p style={{ padding: '20px', textAlign: 'center', color: '#727271', fontSize: '14px' }}>Henüz mesajınız yok.</p>
                             ) : (
                                 conversations.map(conv => (
                                     <div 
@@ -160,7 +168,7 @@ export default function MessagesPage() {
                                         onClick={() => handleSelectConversation(conv)}
                                     >
                                         <div style={styles.avatarWrap}>
-                                            <img src="/images/user.png" alt="user" style={styles.avatar} />
+                                            <img src={`https://ui-avatars.com/api/?name=${conv.title || 'U'}&background=random`} alt="user" style={styles.avatar} />
                                             {conv.unreadCount > 0 && <span style={styles.unreadBadge}>{conv.unreadCount}</span>}
                                         </div>
                                         <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -180,10 +188,10 @@ export default function MessagesPage() {
                                 {/* Chat Header */}
                                 <div style={styles.chatHeader}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <img src="/images/user.png" alt="user" style={styles.headerAvatar} />
+                                        <img src={`https://ui-avatars.com/api/?name=${activeConversation.title || 'U'}&background=random`} alt="user" style={styles.headerAvatar} />
                                         <h4 style={{ margin: 0, fontWeight: 700, fontSize: '18px' }}>{activeConversation.title}</h4>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '16px', color: '#888' }}>
+                                    <div style={{ display: 'flex', gap: '16px', color: '#727271' }}>
                                         <i className="feather-phone" style={{ cursor: 'pointer' }}></i>
                                         <i className="feather-video" style={{ cursor: 'pointer' }}></i>
                                         <i className="feather-more-vertical" style={{ cursor: 'pointer' }}></i>
@@ -293,9 +301,9 @@ const styles = {
     convItemActive: { backgroundColor: '#f0f8f9' },
     avatarWrap: { position: 'relative', flexShrink: 0 },
     avatar: { width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover' },
-    unreadBadge: { position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#e74c3c', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '10px', border: '2px solid #fff' },
-    convTitle: { margin: '0 0 4px', fontSize: '14.5px', fontWeight: 700, color: '#1a1a2e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-    convPreview: { margin: 0, fontSize: '12px', color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+    unreadBadge: { position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#0284c7', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '10px', border: '2px solid #fff' },
+    convTitle: { margin: '0 0 4px', fontSize: '14.5px', fontWeight: 700, color: '#262F59', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+    convPreview: { margin: 0, fontSize: '12px', color: '#727271', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     
     // Chat Area (Right)
     chatArea: { flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fcfcfd', minHeight: 0, height: '100%' },
@@ -316,13 +324,13 @@ const styles = {
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
     },
     myBubble: { 
-        background: 'linear-gradient(135deg, #006F79 0%, #00565e 100%)', 
+        background: 'linear-gradient(135deg, #262F59 0%, #00565e 100%)', 
         color: '#ffffff', 
         borderBottomRightRadius: '5px' 
     },
     theirBubble: { 
         backgroundColor: '#edf1f5', 
-        color: '#1a1a2e', 
+        color: '#262F59', 
         borderBottomLeftRadius: '5px' 
     },
     messageTime: { 
@@ -336,10 +344,10 @@ const styles = {
     
     chatInputContainer: { padding: '16px 20px', backgroundColor: '#fff', borderTop: '1px solid #f0f2f5', flexShrink: 0 },
     chatForm: { display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#f0f2f5', padding: '8px 16px', borderRadius: '24px' },
-    inputIcon: { fontSize: '20px', color: '#888', cursor: 'pointer' },
-    chatInput: { flex: 1, border: 'none', backgroundColor: 'transparent', outline: 'none', fontSize: '14px', padding: '8px 0', color: '#1a1a2e' },
-    sendButton: { backgroundColor: '#006F79', color: '#fff', border: 'none', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: 1, transition: '0.2s', flexShrink: 0 },
+    inputIcon: { fontSize: '20px', color: '#727271', cursor: 'pointer' },
+    chatInput: { flex: 1, border: 'none', backgroundColor: 'transparent', outline: 'none', fontSize: '14px', padding: '8px 0', color: '#262F59' },
+    sendButton: { backgroundColor: '#262F59', color: '#fff', border: 'none', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: 1, transition: '0.2s', flexShrink: 0 },
     
-    emptyChat: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#888', textAlign: 'center' },
+    emptyChat: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#727271', textAlign: 'center' },
     emptyIconWrap: { width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#f0f2f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', color: '#ccc', marginBottom: '20px' }
 };

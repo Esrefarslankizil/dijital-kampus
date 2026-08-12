@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/api';
 import MtuLogo from '../components/MtuLogo';
 
@@ -33,7 +33,7 @@ const styles = {
     },
     subtitle: {
         fontSize: '16px',
-        color: '#6b7280',
+        color: '#727271',
         marginBottom: '40px',
         lineHeight: '1.5',
         textAlign: 'left'
@@ -64,7 +64,7 @@ const styles = {
     },
     roleDesc: {
         fontSize: '13px',
-        color: '#6b7280',
+        color: '#727271',
         textAlign: 'center',
         lineHeight: '1.4'
     },
@@ -76,7 +76,7 @@ const styles = {
         display: 'block',
         fontSize: '13px',
         fontWeight: '600',
-        color: '#4b5563',
+        color: '#727271',
         marginBottom: '8px',
         textTransform: 'uppercase',
         letterSpacing: '0.5px'
@@ -94,7 +94,7 @@ const styles = {
         transition: 'border-color 0.2s ease'
     },
     submitBtn: {
-        backgroundColor: '#006F79',
+        backgroundColor: '#262F59',
         color: '#ffffff',
         border: 'none',
         borderRadius: '12px',
@@ -104,7 +104,7 @@ const styles = {
         width: '100%',
         cursor: 'pointer',
         transition: 'transform 0.1s ease, background-color 0.2s ease',
-        boxShadow: '0 4px 12px rgba(0, 111, 121, 0.3)'
+        boxShadow: '0 4px 12px rgba(38, 47, 89, 0.3)'
     },
     backBtn: {
         background: 'transparent',
@@ -117,12 +117,12 @@ const styles = {
         justifyContent: 'center',
         cursor: 'pointer',
         marginRight: '16px',
-        color: '#4b5563',
+        color: '#727271',
         transition: 'all 0.2s ease'
     }
 };
 
-const handleFocus = (e) => { e.target.style.borderBottom = '2px solid #006F79'; };
+const handleFocus = (e) => { e.target.style.borderBottom = '2px solid #262F59'; };
 const handleBlur = (e) => { e.target.style.borderBottom = '2px solid #e5e7eb'; };
 
 const InputField = ({ label, name, value, onChange, type = "text", placeholder }) => (
@@ -144,6 +144,9 @@ const InputField = ({ label, name, value, onChange, type = "text", placeholder }
 
 function OnboardingPage() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const googleToken = location.state?.googleToken;
+    
     const [step, setStep] = useState(1);
     const [role, setRole] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -163,14 +166,25 @@ function OnboardingPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const [error, setError] = useState('');
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
         try {
-            await authService.completeOnboarding(role, formData);
-            navigate('/feed');
-        } catch (error) {
-            console.error("Onboarding failed", error);
+            const result = await authService.completeOnboarding(role, formData, googleToken);
+            if (result.success) {
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('role', result.role);
+                localStorage.setItem('email', result.email);
+                navigate('/feed');
+            } else {
+                setError(result.message || 'Kayıt başarısız oldu.');
+            }
+        } catch (err) {
+            console.error("Onboarding failed", err);
+            setError(err.message || 'Onboarding sırasında bir hata oluştu. Lütfen tekrar deneyin.');
         } finally {
             setLoading(false);
         }
@@ -236,7 +250,7 @@ function OnboardingPage() {
                                     {role === 'alumni' && "Mezun Profili"}
                                     {role === 'employer' && "Şirket Profili"}
                                 </h2>
-                                <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>Lütfen bilgilerinizi eksiksiz doldurun.</p>
+                                <p style={{ fontSize: '14px', color: '#727271', margin: 0 }}>Lütfen bilgilerinizi eksiksiz doldurun.</p>
                             </div>
                         </div>
                         
@@ -301,7 +315,7 @@ function OnboardingPage() {
                                         style={styles.submitBtn} 
                                         disabled={loading}
                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor='#005860'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor='#006F79'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor='#262F59'}
                                     >
                                         {loading ? 'İşleniyor...' : 'Sisteme Gir'}
                                     </button>

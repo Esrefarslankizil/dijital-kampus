@@ -21,7 +21,7 @@ function MtuLogo({ height = 48, className = "", showText = true, lightText = fal
                         display: 'block',
                         fontWeight: 800, 
                         fontSize: '13px', 
-                        color: lightText ? '#ffffff' : '#1a1a2e', 
+                        color: lightText ? '#ffffff' : '#262F59', 
                         letterSpacing: '0.3px',
                     }}>
                         MALATYA TURGUT ÖZAL

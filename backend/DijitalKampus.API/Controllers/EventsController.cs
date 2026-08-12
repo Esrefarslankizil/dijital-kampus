@@ -117,7 +117,8 @@ public class EventsController : ControllerBase
             EventType = request.EventType ?? "Genel",
             MaxParticipants = request.MaxParticipants,
             ImagePath = imagePath,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsApproved = true // Otomatik onay
         };
 
         _context.Events.Add(newEvent);

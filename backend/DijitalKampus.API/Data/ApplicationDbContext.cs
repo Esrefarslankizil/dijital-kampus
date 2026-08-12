@@ -33,8 +33,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
-    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<GroupMessage> GroupMessages => Set<GroupMessage>();
+    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
 
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Certificate> Certificates => Set<Certificate>();

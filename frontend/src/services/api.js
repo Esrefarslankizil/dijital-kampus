@@ -35,13 +35,39 @@ export const authService = {
     },
 
     googleLogin: async (googleToken) => {
-        console.log('Mock Google login:', googleToken);
-        return { success: true, token: googleToken, isNewUser: true };
+        const response = await fetch(API_BASE_URL + '/auth/google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken: googleToken }),
+        });
+        if (!response.ok) throw new Error('Google Login başarısız.');
+        return await response.json();
     },
 
-    completeOnboarding: async (role, data) => {
-        await new Promise(r => setTimeout(r, 800));
-        return { success: true };
+    completeOnboarding: async (role, data, googleToken) => {
+        const response = await fetch(API_BASE_URL + '/auth/complete-onboarding', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                accessToken: googleToken, 
+                role: role, 
+                ...data 
+            }),
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+            let errorMsg = 'Onboarding başarısız.';
+            if (result && result.message) errorMsg = result.message;
+            if (result && result.errors) errorMsg += ' ' + result.errors.join(', ');
+            throw new Error(errorMsg);
+        }
+        return result;
+    },
+
+    getRecommendations: async (email) => {
+        const response = await fetch(`${API_BASE_URL}/recommendations/people-you-may-know?email=${email}`);
+        if (!response.ok) throw new Error('Öneriler alınamadı.');
+        return await response.json();
     },
 
     logout: async (email) => {
@@ -63,6 +89,12 @@ export const postService = {
         const url = userId > 0 ? `${API_BASE_URL}/posts?userId=${userId}` : `${API_BASE_URL}/posts`;
         const response = await authFetch(url);
         if (!response.ok) throw new Error('Gonderiler yuklenemedi.');
+        return await response.json();
+    },
+
+    getExplorePosts: async (page = 1, pageSize = 20) => {
+        const response = await authFetch(`${API_BASE_URL}/posts/explore?page=${page}&pageSize=${pageSize}`);
+        if (!response.ok) throw new Error('Keşfet gönderileri yüklenemedi.');
         return await response.json();
     },
 
@@ -434,6 +466,13 @@ export const chatService = {
         });
         if (!response.ok) throw new Error('Sohbet baslatilamadi.');
         return await response.json();
+    },
+    markAsRead: async (conversationId) => {
+        const response = await authFetch(API_BASE_URL + '/messages/' + conversationId + '/read', {
+            method: 'PUT'
+        });
+        if (!response.ok) throw new Error('Mesajlar okundu isaretlenemedi.');
+        return true;
     }
 };
 

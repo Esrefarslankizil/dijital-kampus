@@ -25,7 +25,7 @@ const AvatarCircle = ({ url, name, size = 120, border = '4px solid #fff', style 
     return (
         <div style={{
             ...base,
-            background: 'linear-gradient(135deg, #006F79, #00b4d8)',
+            background: 'linear-gradient(135deg, #262F59, #12A7CD)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: '#fff', fontWeight: 800, fontSize: size * 0.38,
         }}>{initial}</div>
@@ -324,7 +324,7 @@ export default function ProfilePage() {
     if (!profile) return (
         <div style={S.page}>
             <LeftSidebar userEmail={userEmail} userRole={userRole} />
-            <main style={S.main}><p style={{ textAlign: 'center', marginTop: 100, color: '#888' }}>Kullanıcı bulunamadı.</p></main>
+            <main style={S.main}><p style={{ textAlign: 'center', marginTop: 100, color: '#727271' }}>Kullanıcı bulunamadı.</p></main>
             <RightSidebar />
         </div>
     );
@@ -336,7 +336,7 @@ export default function ProfilePage() {
     const displayName = (profile.firstName || profile.lastName)
         ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
         : (localName || profile.displayName || profile.userName || profile.email || 'Kullanıcı');
-    const avatarSrc = toAbsoluteUrl(profile.avatarUrl);
+    const avatarSrc = profile.avatarUrl && profile.avatarUrl !== 'null' && profile.avatarUrl !== 'undefined' ? toAbsoluteUrl(profile.avatarUrl) : '/images/default-avatar.svg';
     const coverSrc = toAbsoluteUrl(profile.coverUrl);
 
     // Kendi portfolyo dizilerini güvene al
@@ -355,7 +355,7 @@ export default function ProfilePage() {
                 .cover-overlay { opacity: 0; transition: opacity .2s; }
                 .cover-wrap:hover .cover-overlay { opacity: 1; }
                 .ei { width:100%; padding:10px 14px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:14px; outline:none; box-sizing:border-box; transition:border-color .2s; font-family:inherit; }
-                .ei:focus { border-color: #006F79; }
+                .ei:focus { border-color: #262F59; }
             `}</style>
 
             <LeftSidebar userEmail={userEmail} userRole={userRole} activeMenu="profile" />
@@ -366,7 +366,7 @@ export default function ProfilePage() {
                     <div className="cover-wrap" style={{ position: 'relative', height: 200, borderRadius: '20px 20px 0 0', overflow: 'hidden' }}>
                         {coverSrc
                             ? <img src={coverSrc} alt="Kapak" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
-                            : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #006F79 0%, #003f47 100%)' }} />
+                            : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #262F59 0%, #003f47 100%)' }} />
                         }
                         {coverSrc && (
                             <div className="cover-overlay"
@@ -403,7 +403,7 @@ export default function ProfilePage() {
                         <div style={S.statsRow}>
                             {[['Gönderi', profile.posts?.length || 0], ['Takipçi', profile.followersCount], ['Takip', profile.followingCount]].map(([label, val]) => (
                                 <div key={label} style={{ textAlign: 'center' }}>
-                                    <strong style={{ fontSize: 20, fontWeight: 800, color: '#1a1a2e' }}>{val}</strong>
+                                    <strong style={{ fontSize: 20, fontWeight: 800, color: '#262F59' }}>{val}</strong>
                                     <p style={{ margin: '4px 0 0', fontSize: 12, color: '#aaa', fontWeight: 600, textTransform: 'uppercase' }}>{label}</p>
                                 </div>
                             ))}
@@ -475,11 +475,11 @@ export default function ProfilePage() {
                             <h3 style={{ color: '#333', fontSize: '18px', marginBottom: '16px' }}>Biyografi</h3>
                             {isEditingBio ? (
                                 <div>
-                                    <textarea style={{ width: '100%', minHeight: '100px', borderRadius: '8px', border: '1px solid #ccc', padding: '12px', marginBottom: '12px', outlineColor: '#006F79' }}
+                                    <textarea style={{ width: '100%', minHeight: '100px', borderRadius: '8px', border: '1px solid #ccc', padding: '12px', marginBottom: '12px', outlineColor: '#262F59' }}
                                         value={newBio} onChange={(e) => setNewBio(e.target.value)} placeholder="Kendinden bahset..."
                                     />
                                     <div>
-                                        <button onClick={handleBioSave} style={{ backgroundColor: '#006F79', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px', fontWeight: '500' }}>Kaydet</button>
+                                        <button onClick={handleBioSave} style={{ backgroundColor: '#262F59', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px', fontWeight: '500' }}>Kaydet</button>
                                         <button onClick={() => setIsEditingBio(false)} style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 20px', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>İptal</button>
                                     </div>
                                 </div>
@@ -490,7 +490,7 @@ export default function ProfilePage() {
                                     </p>
                                     {isMe && (
                                         <button onClick={() => { setIsEditingBio(true); setNewBio(userBio || ''); }}
-                                            style={{ backgroundColor: '#e6f4f5', color: '#006F79', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+                                            style={{ backgroundColor: '#e6f4f5', color: '#262F59', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
                                             Düzenle
                                         </button>
                                     )}
@@ -502,14 +502,14 @@ export default function ProfilePage() {
                         <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #eef2f6' }}>
                             <h3 style={{ color: '#333', fontSize: '18px', marginBottom: '16px' }}>Projeler & Çalışmalar</h3>
                             {userProjects.length === 0 ? (
-                                <p style={{ color: '#888' }}>Henüz eklenmiş bir proje yok.</p>
+                                <p style={{ color: '#727271' }}>Henüz eklenmiş bir proje yok.</p>
                             ) : (
                                 <div style={{ display: 'grid', gap: '16px' }}>
                                     {userProjects.map((proj, index) => (
                                         <div key={index} style={{ padding: '16px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <strong style={{ color: '#0f172a', fontSize: '16px' }}>{proj.title || proj.Title}</strong>
-                                                <a href={proj.link || proj.Link} target="_blank" rel="noreferrer" style={{ color: '#006F79', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>İncele ↗</a>
+                                                <a href={proj.link || proj.Link} target="_blank" rel="noreferrer" style={{ color: '#262F59', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>İncele ↗</a>
                                             </div>
                                             <p style={{ margin: '8px 0 0 0', color: '#64748b', fontSize: '14px' }}>{proj.description || proj.Description}</p>
                                         </div>
@@ -521,11 +521,11 @@ export default function ProfilePage() {
                                     <input type="text" placeholder="Proje Adı" value={newProject.title} onChange={(e) => setNewProject({ ...newProject, title: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ccc' }} />
                                     <input type="text" placeholder="Proje Linki (Github vb.)" value={newProject.link} onChange={(e) => setNewProject({ ...newProject, link: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ccc' }} />
                                     <textarea placeholder="Proje Açıklaması" value={newProject.description} onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '12px', borderRadius: '8px', border: '1px solid #ccc', minHeight: '60px' }} />
-                                    <button onClick={handleAddProject} style={{ backgroundColor: '#006F79', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px' }}>Ekle</button>
+                                    <button onClick={handleAddProject} style={{ backgroundColor: '#262F59', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px' }}>Ekle</button>
                                     <button onClick={() => setShowProjectForm(false)} style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 20px', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}>İptal</button>
                                 </div>
                             ) : (
-                                <button onClick={() => setShowProjectForm(true)} style={{ backgroundColor: '#006F79', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '16px', fontWeight: '500' }}>+ Yeni Proje Ekle</button>
+                                <button onClick={() => setShowProjectForm(true)} style={{ backgroundColor: '#262F59', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '16px', fontWeight: '500' }}>+ Yeni Proje Ekle</button>
                             ))}
                         </div>
 
@@ -533,11 +533,11 @@ export default function ProfilePage() {
                         <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #eef2f6' }}>
                             <h3 style={{ color: '#333', fontSize: '18px', marginBottom: '16px' }}>Sertifikalar</h3>
                             {userCertificates.length === 0 ? (
-                                <p style={{ color: '#888' }}>Henüz eklenmiş bir sertifika yok.</p>
+                                <p style={{ color: '#727271' }}>Henüz eklenmiş bir sertifika yok.</p>
                             ) : (
                                 <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                     {userCertificates.map((cert, index) => (
-                                        <li key={index} style={{ backgroundColor: '#e6f4f5', color: '#006F79', padding: '8px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: '500' }}>
+                                        <li key={index} style={{ backgroundColor: '#e6f4f5', color: '#262F59', padding: '8px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: '500' }}>
                                             🏆 {cert.name || cert.Name}
                                         </li>
                                     ))}
@@ -546,11 +546,11 @@ export default function ProfilePage() {
                             {isMe && (showCertForm ? (
                                 <div style={{ marginTop: '20px', padding: '16px', border: '1px dashed #cbd5e1', borderRadius: '12px' }}>
                                     <input type="text" placeholder="Sertifika Adı (Örn: React Bootcamp)" value={newCert.name} onChange={(e) => setNewCert({ name: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '12px', borderRadius: '8px', border: '1px solid #ccc' }} />
-                                    <button onClick={handleAddCert} style={{ backgroundColor: '#006F79', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px' }}>Ekle</button>
+                                    <button onClick={handleAddCert} style={{ backgroundColor: '#262F59', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '10px' }}>Ekle</button>
                                     <button onClick={() => setShowCertForm(false)} style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 20px', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}>İptal</button>
                                 </div>
                             ) : (
-                                <button onClick={() => setShowCertForm(true)} style={{ backgroundColor: '#006F79', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '16px', fontWeight: '500' }}>+ Yeni Sertifika</button>
+                                <button onClick={() => setShowCertForm(true)} style={{ backgroundColor: '#262F59', color: 'white', padding: '8px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '16px', fontWeight: '500' }}>+ Yeni Sertifika</button>
                             ))}
                         </div>
 
@@ -587,13 +587,13 @@ export default function ProfilePage() {
                 <div style={S.backdrop} onClick={() => setShowEditModal(false)}>
                     <div style={S.modal} onClick={e => e.stopPropagation()}>
                         <div style={S.mHeader}>
-                            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#1a1a2e' }}>Profili Düzenle</h3>
+                            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#262F59' }}>Profili Düzenle</h3>
                             <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', fontSize: 28, cursor: 'pointer', color: '#bbb', lineHeight: 1, padding: 0 }}>&times;</button>
                         </div>
                         <div style={{ padding: '0 24px', overflowY: 'auto', maxHeight: '70vh' }}>
                             <div style={{ marginBottom: 24 }}>
                                 <p style={S.label}>Kapak Fotoğrafı</p>
-                                <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', height: 110, background: coverSrc ? 'none' : 'linear-gradient(135deg,#006F79,#003f47)', cursor: 'pointer' }} onClick={() => coverInputRef.current?.click()}>
+                                <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', height: 110, background: coverSrc ? 'none' : 'linear-gradient(135deg,#262F59,#003f47)', cursor: 'pointer' }} onClick={() => coverInputRef.current?.click()}>
                                     {coverSrc && <img src={coverSrc} alt="kapak" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />}
                                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 6 }}>
                                         {coverUploading ? <div style={{ width: 24, height: 24, border: '3px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .7s linear infinite' }}></div> : <i className="feather-image" style={{ color: '#fff', fontSize: 22 }}></i>}
@@ -647,19 +647,19 @@ export default function ProfilePage() {
 }
 
 const S = {
-    page: { display: 'flex', gap: 20, maxWidth: 1400, margin: '0 auto', padding: '80px 20px 40px', boxSizing: 'border-box' },
+    page: { display: 'flex', gap: 20, maxWidth: 1400, margin: '0 auto', padding: '80px 20px 40px', boxSizing: 'border-box', alignItems: 'flex-start', minHeight: '100vh' },
     main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 24 },
-    spinner: { width: 48, height: 48, border: '4px solid #006F79', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .8s linear infinite', margin: '80px auto' },
+    spinner: { width: 48, height: 48, border: '4px solid #262F59', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin .8s linear infinite', margin: '80px auto' },
     heroCard: { backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' },
-    name: { margin: '0 0 2px', fontSize: 24, fontWeight: 800, color: '#1a1a2e' },
+    name: { margin: '0 0 2px', fontSize: 24, fontWeight: 800, color: '#262F59' },
     handle: { margin: '0 0 4px', fontSize: 14, color: '#aaa' },
-    role: { margin: 0, fontSize: 15, color: '#006F79', fontWeight: 600 },
+    role: { margin: 0, fontSize: 15, color: '#262F59', fontWeight: 600 },
     statsRow: { display: 'flex', gap: 40, padding: '18px 0', borderTop: '1px solid #f0f2f5', borderBottom: '1px solid #f0f2f5', margin: '18px 0' },
     btn: { padding: '10px 22px', borderRadius: 24, fontWeight: 700, fontSize: 14, cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-    btnPrimary: { backgroundColor: '#006F79', color: '#fff' },
-    btnSecondary: { backgroundColor: '#f0f2f5', color: '#1a1a2e' },
+    btnPrimary: { backgroundColor: '#262F59', color: '#fff' },
+    btnSecondary: { backgroundColor: '#f0f2f5', color: '#262F59' },
     tabs: { display: 'flex', gap: 24, borderBottom: '1px solid #e8e8e8' },
-    tabActive: { background: 'none', border: 'none', padding: '12px 4px', fontSize: 15, fontWeight: 700, color: '#006F79', borderBottom: '3px solid #006F79', cursor: 'pointer' },
+    tabActive: { background: 'none', border: 'none', padding: '12px 4px', fontSize: 15, fontWeight: 700, color: '#262F59', borderBottom: '3px solid #262F59', cursor: 'pointer' },
     tab: { background: 'none', border: 'none', padding: '12px 4px', fontSize: 15, fontWeight: 600, color: '#aaa', cursor: 'pointer' },
     noPosts: { backgroundColor: '#fff', borderRadius: 20, padding: '60px 20px', textAlign: 'center' },
     backdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn .2s' },

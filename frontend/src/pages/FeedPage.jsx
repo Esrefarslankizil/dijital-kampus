@@ -14,13 +14,13 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
     const [selectedStory, setSelectedStory] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [storyText, setStoryText] = useState('');
-    const [storyBgColor, setStoryBgColor] = useState('#004F56');
+    const [storyBgColor, setStoryBgColor] = useState('#151A33');
     const [storyTextColor, setStoryTextColor] = useState('#ffffff');
     const [storyImage, setStoryImage] = useState(null);
     const [storyImageFile, setStoryImageFile] = useState(null);
 
-    const bgColors = ['#004F56', '#e74c3c', '#8e44ad', '#f39c12', '#2c3e50', '#27ae60', '#000000', '#ffffff'];
-    const textColors = ['#ffffff', '#000000', '#f1c40f', '#006F79', '#e74c3c'];
+    const bgColors = ['#151A33', '#e74c3c', '#8e44ad', '#f39c12', '#2c3e50', '#27ae60', '#000000', '#ffffff'];
+    const textColors = ['#ffffff', '#000000', '#B99C71', '#262F59', '#e74c3c'];
 
     const selectedIndex = stories.findIndex(s => s.id === selectedStory?.id);
     const hasNext = selectedIndex !== -1 && selectedIndex < stories.length - 1;
@@ -44,8 +44,8 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, color: '#006F79' }}>Hikaye Oluştur</h3>
-                            <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>&times;</button>
+                            <h3 style={{ margin: 0, color: '#262F59' }}>Hikaye Oluştur</h3>
+                            <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#727271' }}>&times;</button>
                         </div>
                         <div style={{ height: '300px', borderRadius: '12px', backgroundColor: storyImage ? 'transparent' : storyBgColor, backgroundImage: storyImage ? `url(${storyImage})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
                             <textarea value={storyText} onChange={e => setStoryText(e.target.value)} placeholder="Bir şeyler yaz..." style={{ background: 'transparent', border: 'none', color: storyTextColor, fontSize: '24px', fontWeight: 'bold', textAlign: 'center', width: '100%', resize: 'none', outline: 'none', textShadow: storyTextColor === '#000000' ? 'none' : '0 2px 4px rgba(0,0,0,0.8)' }} rows={4} />
@@ -53,13 +53,13 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', paddingBottom: '4px' }}>
                             <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Arka Plan:</span>
                             {bgColors.map(c => (
-                                <div key={c} onClick={() => { setStoryBgColor(c); setStoryImage(null); setStoryImageFile(null); }} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyBgColor === c && !storyImage ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
+                                <div key={c} onClick={() => { setStoryBgColor(c); setStoryImage(null); setStoryImageFile(null); }} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyBgColor === c && !storyImage ? '3px solid #262F59' : '2px solid #ddd', flexShrink: 0 }}></div>
                             ))}
                         </div>
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', alignItems: 'center', paddingBottom: '4px' }}>
                             <span style={{ fontSize: '12px', fontWeight: 700, color: '#555', marginRight: '4px' }}>Yazı Rengi:</span>
                             {textColors.map(c => (
-                                <div key={c} onClick={() => setStoryTextColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyTextColor === c ? '3px solid #006F79' : '2px solid #ddd', flexShrink: 0 }}></div>
+                                <div key={c} onClick={() => setStoryTextColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: c, cursor: 'pointer', border: storyTextColor === c ? '3px solid #262F59' : '2px solid #ddd', flexShrink: 0 }}></div>
                             ))}
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
@@ -67,7 +67,7 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
                             <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ccc', background: '#f9f9f9', cursor: 'pointer', fontWeight: 600, color: '#555' }}>
                                 <i className="feather-image"></i> Fotoğraf
                             </button>
-                            <button onClick={handleShare} disabled={!storyText.trim() && !storyImage} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: (!storyText.trim() && !storyImage) ? '#ccc' : '#006F79', color: '#fff', cursor: (!storyText.trim() && !storyImage) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
+                            <button onClick={handleShare} disabled={!storyText.trim() && !storyImage} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: (!storyText.trim() && !storyImage) ? '#ccc' : '#262F59', color: '#fff', cursor: (!storyText.trim() && !storyImage) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
                                 Paylaş
                             </button>
                         </div>
@@ -118,7 +118,7 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
             )}
 
             <div style={{ ...styles.card, padding: '16px', background: 'linear-gradient(to right, #ffffff, #e6f4f5)' }}>
-                <h4 style={{ margin: '0 0 16px 4px', color: '#006F79', fontSize: '15px', fontWeight: 700 }}>
+                <h4 style={{ margin: '0 0 16px 4px', color: '#262F59', fontSize: '15px', fontWeight: 700 }}>
                     <i className="feather-film" style={{ marginRight: '8px' }}></i>Kampüs Hikayeleri
                 </h4>
                 <div style={styles.storiesRow} className="stories-row">
@@ -127,12 +127,12 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
                         style={{ 
                             ...styles.storyCard, 
                             backgroundImage: `url(${localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"})`,
-                            border: '2px solid #006F79'
+                            border: '2px solid #262F59'
                         }} 
                         onClick={() => setShowCreateModal(true)}
                     >
                         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40px', background: 'rgba(255,255,255,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', paddingBottom: '6px' }}>
-                            <div style={{ position: 'absolute', top: '-12px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                            <div style={{ position: 'absolute', top: '-12px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#262F59', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
                                 <i className="feather-plus" style={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}></i>
                             </div>
                             <p style={{ color: '#111', fontSize: '10px', fontWeight: 700, margin: 0 }}>Hikaye Ekle</p>
@@ -146,7 +146,7 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
                                 </div>
                             )}
                             <div style={styles.storyGradient}>
-                                <img src={s.avatar} alt={s.name} style={{ ...styles.storyAvatar, border: '2px solid #006F79' }} />
+                                <img src={s.avatar} alt={s.name} style={{ ...styles.storyAvatar, border: '2px solid #262F59' }} />
                                 <p style={styles.storyLabel}>{s.name}</p>
                             </div>
                         </div>
@@ -199,11 +199,11 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
 
     return (
         <div style={{ ...styles.card, padding: '16px', background: 'linear-gradient(to right, #ffffff, #e6f4f5)' }}>
-            <h4 style={{ margin: '0 0 16px 4px', color: '#006F79', fontSize: '15px', fontWeight: 700 }}>
+            <h4 style={{ margin: '0 0 16px 4px', color: '#262F59', fontSize: '15px', fontWeight: 700 }}>
                 <i className="feather-edit-3" style={{ marginRight: '8px' }}></i>Gönderi Oluştur
             </h4>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-                <img src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #006F79' }} />
+                <img src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #262F59' }} />
                 <div style={{ flex: 1 }}>
                     <textarea
                         value={text}
@@ -243,18 +243,19 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
             </div>
             {error && <p style={{ color: '#e74c3c', fontSize: '12px', margin: '4px 0 0', fontWeight: 600 }}>{error}</p>}
             {success && <p style={{ color: '#27ae60', fontSize: '12px', margin: '4px 0 0', fontWeight: 600 }}>{success}</p>}
-            <div style={{ ...styles.postActions, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', backgroundColor: 'rgba(0,111,121,0.03)', padding: '10px 16px', borderRadius: '12px', marginTop: '12px' }}>
+            <div style={{ ...styles.postActions, flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', backgroundColor: 'rgba(38, 47, 89,0.03)', padding: '10px 16px', borderRadius: '12px', marginTop: '12px' }}>
                 <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
-                <button onClick={() => fileInputRef.current?.click()} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: 'rgba(39,174,96,0.1)', color: '#27ae60' }}>
+                <button onClick={() => fileInputRef.current?.click()} className="btn-hover-anim" style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: 'rgba(18, 167, 205, 0.1)', color: '#12A7CD' }}>
                     <i className="feather-image" style={{ marginRight: '6px' }}></i><span>Fotoğraf</span>
                 </button>
-                <button onClick={() => setShowHashtagInput(!showHashtagInput)} style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: showHashtagInput ? 'rgba(52,152,219,0.2)' : 'rgba(52,152,219,0.1)', color: '#3498db' }}>
+                <button onClick={() => setShowHashtagInput(!showHashtagInput)} className="btn-hover-anim" style={{ ...styles.postActionBtn, whiteSpace: 'nowrap', backgroundColor: showHashtagInput ? 'rgba(38, 47, 89, 0.2)' : 'rgba(38, 47, 89, 0.1)', color: '#262F59' }}>
                     <i className="feather-hash" style={{ marginRight: '6px' }}></i><span>Etiket Ekle</span>
                 </button>
                 <button
                     onClick={handleShareClick}
                     disabled={isPosting || (!text.trim() && !selectedImageFile)}
-                    style={{ ...styles.postActionBtn, marginLeft: 'auto', backgroundColor: ((!text.trim() && !selectedImageFile) || isPosting) ? '#ccc' : '#006F79', color: '#fff', fontWeight: 700, borderRadius: '20px', padding: '8px 24px', cursor: ((!text.trim() && !selectedImageFile) || isPosting) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: ((!text.trim() && !selectedImageFile) || isPosting) ? 'none' : '0 4px 12px rgba(0,111,121,0.3)' }}
+                    className="btn-hover-anim"
+                    style={{ ...styles.postActionBtn, marginLeft: 'auto', backgroundColor: ((!text.trim() && !selectedImageFile) || isPosting) ? '#ccc' : '#EF7F1A', color: '#fff', fontWeight: 700, borderRadius: '20px', padding: '8px 24px', cursor: ((!text.trim() && !selectedImageFile) || isPosting) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', boxShadow: ((!text.trim() && !selectedImageFile) || isPosting) ? 'none' : '0 4px 12px rgba(239,127,26,0.4)' }}
                 >
                     {isPosting ? 'Paylaşılıyor...' : 'Paylaş'}
                 </button>
@@ -471,7 +472,7 @@ export default function FeedPage() {
                 {feedError && <p style={{ color: '#e74c3c', textAlign: 'center', margin: '20px 0' }}>{feedError}</p>}
 
                 {postList.length === 0 ? (
-                    <div style={{ ...styles.card, textAlign: 'center', padding: '40px', color: '#888' }}>
+                    <div style={{ ...styles.card, textAlign: 'center', padding: '40px', color: '#727271' }}>
                         Henüz hiç gönderi yok. İlk paylaşan siz olun!
                     </div>
                 ) : (
@@ -498,11 +499,11 @@ const styles = {
     postTextarea: { border: '1px solid #e0e0e0', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', lineHeight: '1.6', resize: 'none', outline: 'none', backgroundColor: '#fafafa', fontFamily: 'inherit', transition: 'border-color 0.2s' },
     postActions: { display: 'flex', gap: '10px', marginTop: '12px' },
     postActionBtn: { border: 'none', padding: '8px 14px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, transition: 'all 0.2s' },
-    hashtagPill: { display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(0,111,121,0.1)', color: '#006F79', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 },
+    hashtagPill: { display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(38, 47, 89,0.1)', color: '#262F59', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 600 },
     storiesRow: { display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' },
     storyCard: { minWidth: '90px', height: '140px', borderRadius: '14px', backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer', position: 'relative', overflow: 'hidden', flexShrink: 0, transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
-    storyAddCard: { minWidth: '90px', height: '140px', borderRadius: '14px', border: '2px dashed #006F79', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: '8px', flexShrink: 0, backgroundColor: 'rgba(0,111,121,0.04)', transition: 'background 0.2s' },
-    storyAddIcon: { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#006F79', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    storyAddCard: { minWidth: '90px', height: '140px', borderRadius: '14px', border: '2px dashed #262F59', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: '8px', flexShrink: 0, backgroundColor: 'rgba(38, 47, 89,0.04)', transition: 'background 0.2s' },
+    storyAddIcon: { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#262F59', display: 'flex', alignItems: 'center', justifyContent: 'center' },
     storyGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 6px 6px', background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center' },
     storyAvatar: { width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', marginBottom: '4px' },
     storyLabel: { color: '#fff', fontSize: '10px', fontWeight: 700, margin: 0, textAlign: 'center', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', width: '100%' },

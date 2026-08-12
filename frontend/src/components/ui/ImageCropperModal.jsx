@@ -101,7 +101,7 @@ export default function ImageCropperModal({ imageSrc, mode = 'avatar', onConfirm
             <div style={S.modal} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div style={S.header}>
-                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#1a1a2e' }}>
+                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#262F59' }}>
                         {isAvatar ? 'Profil Fotoğrafı Kırp' : 'Kapak Fotoğrafı Kırp'}
                     </h3>
                     <button onClick={onCancel} style={S.closeBtn}>&times;</button>
@@ -156,7 +156,7 @@ export default function ImageCropperModal({ imageSrc, mode = 'avatar', onConfirm
                 @keyframes spin { to { transform: rotate(360deg); } }
                 /* react-image-crop overrides */
                 .ReactCrop__crop-selection { border: 2.5px solid #fff !important; }
-                .ReactCrop__drag-handle::after { background: #006F79 !important; border: 2px solid #fff !important; }
+                .ReactCrop__drag-handle::after { background: #262F59 !important; border: 2px solid #fff !important; }
             `}</style>
         </div>
     );
@@ -196,8 +196,8 @@ const S = {
         fontSize: 14, cursor: 'pointer', border: 'none',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     },
-    btnPrimary: { backgroundColor: '#006F79', color: '#fff' },
-    btnSecondary: { backgroundColor: '#f0f2f5', color: '#1a1a2e' },
+    btnPrimary: { backgroundColor: '#262F59', color: '#fff' },
+    btnSecondary: { backgroundColor: '#f0f2f5', color: '#262F59' },
     spin: {
         width: 16, height: 16, border: '2px solid rgba(255,255,255,.4)',
         borderTopColor: '#fff', borderRadius: '50%',

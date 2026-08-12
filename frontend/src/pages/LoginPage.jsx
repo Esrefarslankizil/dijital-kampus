@@ -20,9 +20,12 @@ function LoginPage() {
                 const result = await authService.googleLogin(tokenResponse.access_token);
                 console.log("Mock Google Login successful", result);
                 if (result.isNewUser) {
-                    window.location.href = '/onboarding';
+                    navigate('/onboarding', { state: { googleToken: tokenResponse.access_token } });
                 } else {
-                    window.location.href = '/feed';
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('role', result.role);
+                    localStorage.setItem('email', result.email);
+                    navigate('/feed');
                 }
             } catch (err) {
                 setError("Google ile giriş yapılamadı.");
@@ -63,7 +66,7 @@ function LoginPage() {
         <div className="row">
             <div
                 className="col-xl-6 d-none d-xl-block p-0 vh-100 bg-no-repeat position-relative overflow-hidden"
-                style={{ backgroundColor: '#004F56', backgroundImage: `url('/images/campus-bg.webp')`, backgroundPosition: 'center', backgroundSize: 'contain' }}
+                style={{ backgroundColor: '#151A33', backgroundImage: `url('/images/campus-bg.webp')`, backgroundPosition: 'center', backgroundSize: 'contain' }}
             >
                 {/* Subtle decorative shapes to fill green spaces */}
                 <div className="floating-bubble bubble-1"></div>

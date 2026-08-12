@@ -15,9 +15,16 @@ function Header({ onOpenLogin, onOpenRegister }) {
     const [results, setResults] = useState([]);
     const [showRightSearch, setShowRightSearch] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    // Hata 2: Canlı isim state'i
     const [headerDisplayName, setHeaderDisplayName] = useState(getDisplayNameFromStorage);
+    
+    // Notifications State
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    
     const navigate = useNavigate();
+
+    const currentUserId = parseInt(localStorage.getItem('userId') || '0', 10);
 
     // localStorage değiştiğinde ismi güncelle
     useEffect(() => {
@@ -27,6 +34,44 @@ function Header({ onOpenLogin, onOpenRegister }) {
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
+
+    // Load Notifications
+    const loadNotifications = async () => {
+        if (!currentUserId) return;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:5181/api/notifications/${currentUserId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setNotifications(data);
+                setUnreadCount(data.filter(n => !n.isRead).length);
+            }
+        } catch (error) {
+            console.error("Notifications err:", error);
+        }
+    };
+
+    useEffect(() => {
+        loadNotifications();
+        const interval = setInterval(loadNotifications, 5000);
+        return () => clearInterval(interval);
+    }, [currentUserId]);
+
+    const markAsRead = async (id) => {
+        try {
+            const token = localStorage.getItem('token');
+            await fetch(`http://localhost:5181/api/notifications/${id}/read`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const handleSearch = async (e) => {
         const val = e.target.value;
@@ -166,16 +211,14 @@ function Header({ onOpenLogin, onOpenRegister }) {
                                                 onClick={() => { setKeyword(''); setResults([]); }}
                                                 style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '10px', textDecoration: 'none', gap: '12px' }}
                                             >
-                                                {user.avatarUrl ? (
+                                                {user.avatarUrl && user.avatarUrl !== 'null' && user.avatarUrl !== 'undefined' ? (
                                                     <img src={`http://localhost:5181${user.avatarUrl}`} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'block' }} />
                                                 ) : (
-                                                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #006F79, #00b4d8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: 14, flexShrink: 0 }}>
-                                                        {initial}
-                                                    </div>
+                                                    <img src={`https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'block', backgroundColor: '#f0f2f5' }} />
                                                 )}
                                                 <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                    <strong style={{ fontSize: '13.5px', color: '#1a1a2e', marginBottom: '2px', lineHeight: 1.2 }}>{displayName}</strong>
-                                                    <span style={{ fontSize: '12px', color: '#888', lineHeight: 1.2 }}>@{user.userName || user.email.split('@')[0]}</span>
+                                                    <strong style={{ fontSize: '13.5px', color: '#262F59', marginBottom: '2px', lineHeight: 1.2 }}>{displayName}</strong>
+                                                    <span style={{ fontSize: '12px', color: '#727271', lineHeight: 1.2 }}>@{user.userName || user.email.split('@')[0]}</span>
                                                 </div>
                                             </Link>
                                         </li>
@@ -188,19 +231,75 @@ function Header({ onOpenLogin, onOpenRegister }) {
 
                 {/* Sağ Simgeler */}
                 <div className="d-flex align-items-center ms-auto" style={{ gap: '6px', position: 'relative' }}>
-                    <Link to="/feed" className="d-none d-md-flex align-items-center justify-content-center" style={iconBtnStyle}>
-                        <i className="feather-home" style={{ fontSize: '18px', color: 'var(--mtu-primary)' }}></i>
+                    <Link to="/" style={{...iconBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#12A7CD'}}>
+                        <i className="feather-home" style={{ fontSize: '18px' }}></i>
                     </Link>
-                    <Link to="/messages" className="d-none d-md-flex align-items-center justify-content-center" style={iconBtnStyle}>
-                        <i className="feather-message-circle" style={{ fontSize: '18px', color: '#555' }}></i>
+                    
+                    {/* Notifications Bell */}
+                    <div style={{ position: 'relative' }}>
+                        <button 
+                            onClick={() => {
+                                setShowNotifications(!showNotifications);
+                                setIsProfileMenuOpen(false);
+                            }} 
+                            style={{...iconBtnStyle, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#262F59', position: 'relative'}}
+                        >
+                            <i className="feather-bell" style={{ fontSize: '18px' }}></i>
+                            {unreadCount > 0 && (
+                                <span style={{
+                                    position: 'absolute', top: -4, right: -4, backgroundColor: '#e74c3c', color: '#fff', fontSize: '10px', 
+                                    fontWeight: 'bold', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff'
+                                }}>
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </button>
+
+                        {/* Notifications Dropdown */}
+                        {showNotifications && (
+                            <div style={{
+                                position: 'absolute', top: '50px', right: 0, width: '320px', backgroundColor: '#fff', 
+                                borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid #e5e7eb', zIndex: 1000, overflow: 'hidden'
+                            }}>
+                                <div style={{ padding: '14px 16px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fbfc' }}>
+                                    <h4 style={{ margin: 0, fontSize: '15px', color: '#262F59', fontWeight: 700 }}>Bildirimler</h4>
+                                    {unreadCount > 0 && <span style={{ fontSize: '12px', color: '#12A7CD', cursor: 'pointer', fontWeight: 600 }}>Tümünü Okundu İşaretle</span>}
+                                </div>
+                                <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                                    {notifications.length === 0 ? (
+                                        <div style={{ padding: '30px 20px', textAlign: 'center', color: '#727271', fontSize: '14px' }}>
+                                            Yeni bildiriminiz yok.
+                                        </div>
+                                    ) : (
+                                        notifications.map(n => (
+                                            <div 
+                                                key={n.id} 
+                                                onClick={() => !n.isRead && markAsRead(n.id)}
+                                                style={{ 
+                                                    padding: '14px 16px', borderBottom: '1px solid #f0f2f5', cursor: 'pointer',
+                                                    backgroundColor: n.isRead ? '#fff' : '#f0f8ff', display: 'flex', gap: '12px', alignItems: 'flex-start',
+                                                    transition: 'background-color 0.2s'
+                                                }}
+                                            >
+                                                <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: n.isRead ? 'transparent' : '#12A7CD', marginTop: 6, flexShrink: 0 }}></div>
+                                                <div>
+                                                    <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#262F59', lineHeight: '1.4', fontWeight: n.isRead ? 500 : 600 }}>{n.content}</p>
+                                                    <span style={{ fontSize: '11px', color: '#888' }}>
+                                                        {new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <Link to="/messages" style={{...iconBtnStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#262F59'}}>
+                        <i className="feather-message-square" style={{ fontSize: '18px' }}></i>
                     </Link>
-                    <a href="#" className="d-none d-md-flex align-items-center justify-content-center" style={iconBtnStyle}>
-                        <i className="feather-video" style={{ fontSize: '18px', color: '#555' }}></i>
-                    </a>
-                    <a href="#" className="d-none d-md-flex align-items-center justify-content-center position-relative" style={iconBtnStyle}>
-                        <i className="feather-bell" style={{ fontSize: '18px', color: '#555' }}></i>
-                        <span style={{ position: 'absolute', top: '6px', right: '8px', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--mtu-secondary)' }}></span>
-                    </a>
+                    
                     <button
                         type="button"
                         onClick={() => setShowRightSearch(!showRightSearch)}
@@ -234,7 +333,7 @@ function Header({ onOpenLogin, onOpenRegister }) {
                                     onChange={handleSearch}
                                     style={{
                                         width: '100%',
-                                        border: '1.5px solid #006F79',
+                                        border: '1.5px solid #262F59',
                                         borderRadius: '20px',
                                         padding: '6px 12px 6px 34px',
                                         fontSize: '13px',
@@ -257,16 +356,14 @@ function Header({ onOpenLogin, onOpenRegister }) {
                                                     onClick={() => { setKeyword(''); setResults([]); setShowRightSearch(false); }}
                                                     style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '8px', textDecoration: 'none', gap: '10px' }}
                                                 >
-                                                    {user.avatarUrl ? (
+                                                    {user.avatarUrl && user.avatarUrl !== 'null' && user.avatarUrl !== 'undefined' ? (
                                                         <img src={`http://localhost:5181${user.avatarUrl}`} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                                                     ) : (
-                                                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #006F79, #00b4d8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: 13, flexShrink: 0 }}>
-                                                            {initial}
-                                                        </div>
+                                                        <img src="/images/default-avatar.svg" alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, backgroundColor: '#f0f2f5' }} />
                                                     )}
                                                     <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                        <strong style={{ fontSize: '13px', color: '#1a1a2e', lineHeight: 1.2 }}>{displayName}</strong>
-                                                        <span style={{ fontSize: '11px', color: '#888', lineHeight: 1.2 }}>@{user.userName || user.email.split('@')[0]}</span>
+                                                        <strong style={{ fontSize: '13px', color: '#262F59', lineHeight: 1.2 }}>{displayName}</strong>
+                                                        <span style={{ fontSize: '11px', color: '#727271', lineHeight: 1.2 }}>@{user.userName || user.email.split('@')[0]}</span>
                                                     </div>
                                                 </Link>
                                             </li>
@@ -274,30 +371,45 @@ function Header({ onOpenLogin, onOpenRegister }) {
                                     })}
                                 </ul>
                             ) : keyword.length > 2 && (
-                                <p style={{ margin: 0, padding: '8px', fontSize: '12px', color: '#888', textAlign: 'center' }}>Sonuç bulunamadı.</p>
+                                <p style={{ margin: 0, padding: '8px', fontSize: '12px', color: '#727271', textAlign: 'center' }}>Sonuç bulunamadı.</p>
                             )}
                         </div>
                     )}
 
                     {/* PROFIL AVATARI VE SIFIRLANMIŞ EŞİT MENÜ */}
                     <div className="d-none d-md-block ms-1" style={{ position: 'relative' }}>
-                        {localStorage.getItem('avatarUrl') ? (
-                            <img 
-                                src={localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `http://localhost:5181${localStorage.getItem('avatarUrl')}`} 
-                                alt="profil" 
-                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                                style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mtu-primary)', cursor: 'pointer' }} 
-                                title={headerDisplayName}
-                            />
-                        ) : (
-                            <div
-                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                                style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #006F79, #00b4d8)', border: '2px solid var(--mtu-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15 }}
-                                title={headerDisplayName}
-                            >
-                                {headerDisplayName.charAt(0).toUpperCase()}
-                            </div>
-                        )}
+                        {(() => {
+                            const rawAvatar = localStorage.getItem('avatarUrl');
+                            const hasValidAvatar = rawAvatar && rawAvatar !== 'null' && rawAvatar !== 'undefined' && rawAvatar.trim() !== '';
+                            const avatarSrc = hasValidAvatar ? (rawAvatar.startsWith('http') ? rawAvatar : `http://localhost:5181${rawAvatar}`) : null;
+                            
+                            if (avatarSrc) {
+                                return (
+                                    <img
+                                        src={avatarSrc}
+                                        alt="Profil"
+                                        onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                        style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--mtu-primary)', cursor: 'pointer' }}
+                                        title={headerDisplayName}
+                                        onError={(e) => {
+                                            console.error("HEADER AVATAR LOAD ERROR for src:", avatarSrc);
+                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.nextSibling && (e.currentTarget.nextSibling.style.display = 'flex');
+                                        }}
+                                    />
+                                );
+                            }
+                            return (
+                                <div
+                                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                    title={headerDisplayName}
+                                    style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid var(--mtu-primary)', cursor: 'pointer', backgroundColor: '#e8ecf0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', overflow: 'hidden' }}
+                                >
+                                    <div style={{ width: '40%', height: '38%', borderRadius: '50%', backgroundColor: '#9ba5b0', marginTop: '8%' }} />
+                                    <div style={{ width: '68%', height: '44%', borderRadius: '50% 50% 0 0', backgroundColor: '#9ba5b0', marginTop: '4%' }} />
+                                </div>
+                            );
+                        })()}
 
                         {isProfileMenuOpen && (
                             <div className="custom-dropdown-menu">

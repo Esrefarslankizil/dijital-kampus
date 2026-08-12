@@ -170,7 +170,7 @@ body {
 /* Social Buttons Enhancement */
 .modern-social-btn {
     background-color: #ffffff !important;
-    color: #4b5563 !important;
+    color: #727271 !important;
     border: 1px solid #e5e7eb !important;
     border-radius: 12px !important;
     transition: all 0.3s ease !important;
@@ -265,3 +265,6 @@ body {
 .modern-divider::after {
     margin-left: 16px;
 }
+
+.btn-hover-anim { transition: transform 0.2s ease, filter 0.2s ease !important; }
+.btn-hover-anim:hover { transform: scale(1.05); filter: brightness(1.1); }

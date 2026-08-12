@@ -35,6 +35,7 @@ const currentUserId = getUserIdFromToken();
 
     const navItems = [
         { id: 'feed', icon: 'feather-home', label: 'Ana Akış', path: '/feed' },
+        { id: 'explore', icon: 'feather-compass', label: 'Keşfet', path: '/explore' },
         { id: 'badges', icon: 'feather-award', label: 'Rozetler', path: '/badges' },
         { id: 'events', icon: 'feather-calendar', label: 'Etkinlikler', path: '/events' },
         { id: 'groups', icon: 'feather-users', label: 'Gruplar', path: '/groups' },
@@ -54,9 +55,11 @@ const currentUserId = getUserIdFromToken();
                 if (!data) return;
 
                 // Eşref'in avatar kaydetme ve senin güvenli URL atama mantığın birleşti
-                if (data.avatarUrl) {
-                    setAvatarUrl(`http://localhost:5181${data.avatarUrl}`);
+                if (data.avatarUrl && data.avatarUrl !== 'null' && data.avatarUrl !== 'undefined' && data.avatarUrl.trim() !== '') {
+                    setAvatarUrl(data.avatarUrl.startsWith('http') ? data.avatarUrl : `http://localhost:5181${data.avatarUrl}`);
                     localStorage.setItem('avatarUrl', data.avatarUrl);
+                } else {
+                    setAvatarUrl(null); // Ensure fallback triggers if backend gives us garbage
                 }
 
                 // Senin localName çekme ve atama mantığın korundu
@@ -111,18 +114,18 @@ const currentUserId = getUserIdFromToken();
                     margin-bottom: 2px;
                 }
                 .nav-item-link:hover {
-                    background-color: rgba(0, 111, 121, 0.16) !important;
-                    color: #006F79 !important;
+                    background-color: rgba(38, 47, 89, 0.16) !important;
+                    color: #262F59 !important;
                     transform: translateX(3px);
                 }
                 .nav-item-link:hover .nav-icon {
-                    color: #006F79 !important;
+                    color: #262F59 !important;
                 }
                 .nav-item-link.active-item {
-                    background-color: #006F79 !important;
+                    background-color: #262F59 !important;
                     color: #ffffff !important;
                     font-weight: 700 !important;
-                    box-shadow: 0 4px 12px rgba(0, 111, 121, 0.22);
+                    box-shadow: 0 4px 12px rgba(38, 47, 89, 0.22);
                     transform: translateX(0);
                 }
                 .nav-item-link.active-item .nav-icon {
@@ -137,26 +140,43 @@ const currentUserId = getUserIdFromToken();
                 <div style={{ ...styles.profileCard, transition: 'transform 0.2s', cursor: 'pointer' }}>
                     <div style={styles.profileBanner}></div>
                     <div style={styles.profileAvatarWrap}>
-                        {avatarUrl ? (
-                            <img src={avatarUrl} alt="profil" style={styles.profileAvatar} />
-                        ) : (
-                            <div style={{
-                                ...styles.profileAvatar,
-                                background: 'linear-gradient(135deg, #006F79, #00b4d8)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: '#fff', fontWeight: 800, fontSize: '18px',
-                            }}>{initial}</div>
-                        )}
+                        {avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' ? (
+                            <img
+                                src={avatarUrl}
+                                alt="profil"
+                                style={styles.profileAvatar}
+                                onError={(e) => {
+                                    console.error('SIDEBAR AVATAR HATA - src:', avatarUrl);
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextSibling && (e.currentTarget.nextSibling.style.display = 'flex');
+                                }}
+                            />
+                        ) : null}
+                        <div style={{
+                            ...styles.profileAvatar,
+                            display: avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' ? 'none' : 'flex',
+                            backgroundColor: '#e8ecf0',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                            position: 'relative'
+                        }}>
+                            {/* Baş */}
+                            <div style={{ width: '40%', height: '40%', borderRadius: '50%', backgroundColor: '#9ba5b0', marginTop: '10%' }} />
+                            {/* Gövde */}
+                            <div style={{ width: '70%', height: '45%', borderRadius: '50% 50% 0 0', backgroundColor: '#9ba5b0', marginTop: '4%' }} />
+                        </div>
                     </div>
                     <div style={{ textAlign: 'center', padding: '8px 16px 16px' }}>
                         <p style={styles.profileName}>{displayName}</p>
                         <span style={styles.profileRole}>{userRole}</span>
                         <div style={styles.profileStats}>
-                            <div style={styles.stat}><strong style={{ color: '#006F79' }}>{activeFollowers}</strong><br /><small>Takipçi</small></div>
+                            <div style={styles.stat}><strong style={{ color: '#262F59' }}>{activeFollowers}</strong><br /><small>Takipçi</small></div>
                             <div style={styles.statDivider}></div>
-                            <div style={styles.stat}><strong style={{ color: '#006F79' }}>{activeFollowing}</strong><br /><small>Takip</small></div>
+                            <div style={styles.stat}><strong style={{ color: '#262F59' }}>{activeFollowing}</strong><br /><small>Takip</small></div>
                             <div style={styles.statDivider}></div>
-                            <div style={styles.stat}><strong style={{ color: '#006F79' }}>{activePosts}</strong><br /><small>Gönderi</small></div>
+                            <div style={styles.stat}><strong style={{ color: '#262F59' }}>{activePosts}</strong><br /><small>Gönderi</small></div>
                         </div>
                     </div>
                 </div>
@@ -196,11 +216,11 @@ const currentUserId = getUserIdFromToken();
                     <span style={styles.shortcutText}>Kütüphane Sistemi</span>
                 </a>
                 <a href="https://sks.ozal.edu.tr/yemek-menusu/" target="_blank" rel="noopener noreferrer" style={styles.shortcutItem}>
-                    <div style={{ ...styles.shortcutIconWrap, backgroundColor: 'rgba(214,163,39,0.1)', color: '#D6A327' }}><i className="feather-coffee"></i></div>
+                    <div style={{ ...styles.shortcutIconWrap, backgroundColor: 'rgba(185, 156, 113,0.1)', color: '#B99C71' }}><i className="feather-coffee"></i></div>
                     <span style={styles.shortcutText}>Yemekhane Menüsü</span>
                 </a>
                 <a href="https://obs.ozal.edu.tr/" target="_blank" rel="noopener noreferrer" style={styles.shortcutItem}>
-                    <div style={{ ...styles.shortcutIconWrap, backgroundColor: 'rgba(0,111,121,0.1)', color: '#006F79' }}><i className="feather-file-text"></i></div>
+                    <div style={{ ...styles.shortcutIconWrap, backgroundColor: 'rgba(38, 47, 89,0.1)', color: '#262F59' }}><i className="feather-file-text"></i></div>
                     <span style={styles.shortcutText}>Öğrenci İşleri (OBS)</span>
                 </a>
                 <a href="#" style={styles.shortcutItem}>
@@ -215,20 +235,20 @@ const currentUserId = getUserIdFromToken();
 const styles = {
     leftSidebar: { width: '260px', flexShrink: 0, position: 'sticky', top: '80px' },
     profileCard: { backgroundColor: '#fff', borderRadius: '16px', marginBottom: '12px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-    profileBanner: { height: '60px', background: 'linear-gradient(135deg, #006F79 0%, var(--mtu-primary-hover) 100%)' },
+    profileBanner: { height: '60px', background: 'linear-gradient(135deg, #262F59 0%, var(--mtu-primary-hover) 100%)' },
     profileAvatarWrap: { display: 'flex', justifyContent: 'center', marginTop: '-24px' },
     profileAvatar: { width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
-    profileName: { margin: '8px 0 2px', fontWeight: 700, fontSize: '14px', color: '#1a1a2e' },
-    profileRole: { fontSize: '11px', color: '#006F79', backgroundColor: 'rgba(0,111,121,0.08)', padding: '2px 10px', borderRadius: '20px', fontWeight: 600 },
+    profileName: { margin: '8px 0 2px', fontWeight: 700, fontSize: '14px', color: '#262F59' },
+    profileRole: { fontSize: '11px', color: '#262F59', backgroundColor: 'rgba(38, 47, 89,0.08)', padding: '2px 10px', borderRadius: '20px', fontWeight: 600 },
     profileStats: { display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f0f2f5' },
-    stat: { textAlign: 'center', fontSize: '11px', color: '#888' },
+    stat: { textAlign: 'center', fontSize: '11px', color: '#727271' },
     statDivider: { width: '1px', height: '30px', backgroundColor: '#f0f2f5' },
-    navCard: { backgroundColor: '#fff', borderRadius: '16px', padding: '12px 8px', boxShadow: '0 4px 20px rgba(0,111,121,0.08)' },
-    navCaption: { fontSize: '11px', fontWeight: 800, color: '#888', letterSpacing: '1px', padding: '4px 12px 12px', margin: 0 },
+    navCard: { backgroundColor: '#fff', borderRadius: '16px', padding: '12px 8px', boxShadow: '0 4px 20px rgba(38, 47, 89,0.08)' },
+    navCaption: { fontSize: '11px', fontWeight: 800, color: '#727271', letterSpacing: '1px', padding: '4px 12px 12px', margin: 0 },
     navItem: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderRadius: '10px', color: '#555', textDecoration: 'none', fontSize: '13.5px', fontWeight: 600, transition: 'all 0.15s' },
-    navItemActive: { backgroundColor: 'rgba(0,111,121,0.08)', color: '#006F79', fontWeight: 700 },
+    navItemActive: { backgroundColor: 'rgba(38, 47, 89,0.08)', color: '#262F59', fontWeight: 700 },
     navIcon: { width: '20px', marginRight: '12px', fontSize: '18px', color: '#999' },
-    navDot: { width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#006F79', marginLeft: 'auto' },
+    navDot: { width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#262F59', marginLeft: 'auto' },
     shortcutItem: { display: 'flex', alignItems: 'center', padding: '8px 12px', textDecoration: 'none', transition: 'all 0.2s', borderRadius: '10px' },
     shortcutIconWrap: { width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px', fontSize: '14px' },
     shortcutText: { fontSize: '13px', color: '#444', fontWeight: 600 }

@@ -9,12 +9,14 @@ import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import FeedPage from './pages/FeedPage';
 import OnboardingPage from './pages/OnboardingPage';
+import ExplorePage from './pages/ExplorePage';
 
 import BadgesPage from './pages/BadgesPage';
 import GroupsPage from './pages/GroupsPage';
 import EventsPage from './pages/EventsPage';
 import MessagesPage from './pages/MessagesPage';
 import ProfilePage from './pages/ProfilePage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
@@ -38,14 +40,51 @@ function AppContent() {
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/badges" element={<BadgesPage />} />
-          <Route path="/groups" element={<GroupsPage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/profile/:id" element={<ProfilePage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/feed" element={
+            <ProtectedRoute>
+              <FeedPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/explore" element={
+            <ProtectedRoute>
+              <ExplorePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/badges" element={
+            <ProtectedRoute>
+              <BadgesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/groups" element={
+            <ProtectedRoute>
+              <GroupsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/events" element={
+            <ProtectedRoute>
+              <EventsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/messages" element={
+            <ProtectedRoute>
+              <MessagesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile/:id" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="Admin">
+              <AdminPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
 

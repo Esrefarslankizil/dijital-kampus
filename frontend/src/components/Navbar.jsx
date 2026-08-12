@@ -68,7 +68,7 @@ const Navbar = () => {
                     }}>
                         {results.map(user => (
                             <li key={user.id} style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>
-                                <strong>{user.firstName} {user.lastName}</strong> <span style={{ fontSize: '12px', color: '#888' }}>({user.email})</span>
+                                <strong>{user.firstName} {user.lastName}</strong> <span style={{ fontSize: '12px', color: '#727271' }}>({user.email})</span>
                             </li>
                         ))}
                     </ul>

@@ -137,7 +137,7 @@ function CreateEventModal({ onClose, onCreated, currentUserId }) {
                             </div>
                         ) : (
                             <div onClick={() => fileInputRef.current?.click()} style={{ border: '2px dashed #e5e7eb', borderRadius: '12px', padding: '28px', textAlign: 'center', cursor: 'pointer', backgroundColor: '#f9fbfc', transition: 'border-color 0.2s' }}
-                                onMouseEnter={e => e.currentTarget.style.borderColor='#006F79'}
+                                onMouseEnter={e => e.currentTarget.style.borderColor='#262F59'}
                                 onMouseLeave={e => e.currentTarget.style.borderColor='#e5e7eb'}>
                                 <i className="feather-image" style={{ fontSize: '28px', color: '#bbb', display: 'block', marginBottom: '8px' }}></i>
                                 <p style={{ margin: 0, fontSize: '13px', color: '#aaa' }}>Gorsel secmek icin tiklayin</p>
@@ -284,7 +284,7 @@ export default function EventsPage() {
                 {/* Header */}
                 <div style={styles.card}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-                        <h3 style={{ margin: 0, color: '#006F79', fontSize: '22px', fontWeight: 800 }}>
+                        <h3 style={{ margin: 0, color: '#262F59', fontSize: '22px', fontWeight: 800 }}>
                             <i className="feather-calendar" style={{ marginRight: '10px' }}></i>Kampus Etkinlikleri
                         </h3>
                         <button onClick={() => setShowModal(true)} style={styles.createBtn}>
@@ -319,9 +319,9 @@ export default function EventsPage() {
                 {/* Liste */}
                 <div style={styles.card}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '40px', color: '#006F79' }}>
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#262F59' }}>
                             <i className="feather-loader" style={{ fontSize: '24px' }}></i>
-                            <p style={{ marginTop: '12px', color: '#888' }}>Etkinlikler yukleniyor...</p>
+                            <p style={{ marginTop: '12px', color: '#727271' }}>Etkinlikler yukleniyor...</p>
                         </div>
                     ) : displayedEvents.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '60px 20px' }}>
@@ -347,21 +347,21 @@ export default function EventsPage() {
                                     <div key={ev.id} style={styles.eventCard}>
                                         <div style={{ position: 'relative', width: '220px', flexShrink: 0 }}>
                                             <img
-                                                src={ev.imagePath ? 'http://localhost:5181' + ev.imagePath : (EVENT_IMAGES[ev.eventType] || EVENT_IMAGES['default'])}
+                                                src={ev.imagePath ? 'http://localhost:5181' + ev.imagePath : 'http://localhost:5181/uploads/events/default.jpg'}
                                                 alt={ev.title}
                                                 style={styles.eventImage}
                                             />
-                                            <span style={{ ...styles.categoryBadge, backgroundColor: isAttending ? '#006F79' : '#f0f2f5', color: isAttending ? '#fff' : '#555' }}>
+                                            <span style={{ ...styles.categoryBadge, backgroundColor: isAttending ? '#262F59' : '#f0f2f5', color: isAttending ? '#fff' : '#555' }}>
                                                 {ev.eventType}
                                             </span>
                                         </div>
                                         <div style={styles.eventContent}>
                                             <div>
                                                 <h4 style={styles.eventTitle}>{ev.title}</h4>
-                                                {ev.description && <p style={{ fontSize: '13px', color: '#888', margin: '0 0 12px', lineHeight: '1.5' }}>{ev.description}</p>}
-                                                <p style={styles.eventMeta}><i className="feather-clock" style={{ marginRight: '6px', color: '#006F79' }}></i>{formatDate(ev.eventDate)}</p>
-                                                <p style={styles.eventMeta}><i className="feather-map-pin" style={{ marginRight: '6px', color: '#006F79' }}></i>{ev.location}</p>
-                                                <p style={styles.eventMeta}><i className="feather-user" style={{ marginRight: '6px', color: '#006F79' }}></i>{ev.organizerEmail}</p>
+                                                {ev.description && <p style={{ fontSize: '13px', color: '#727271', margin: '0 0 12px', lineHeight: '1.5' }}>{ev.description}</p>}
+                                                <p style={styles.eventMeta}><i className="feather-clock" style={{ marginRight: '6px', color: '#262F59' }}></i>{formatDate(ev.eventDate)}</p>
+                                                <p style={styles.eventMeta}><i className="feather-map-pin" style={{ marginRight: '6px', color: '#262F59' }}></i>{ev.location}</p>
+                                                <p style={styles.eventMeta}><i className="feather-user" style={{ marginRight: '6px', color: '#262F59' }}></i>{ev.organizerEmail}</p>
                                             </div>
                                             <div style={styles.eventAction}>
                                                 <div>
@@ -371,12 +371,12 @@ export default function EventsPage() {
                                                     {ev.maxParticipants && (
                                                         <>
                                                             <span style={{ color: '#ccc', margin: '0 6px' }}>/</span>
-                                                            <span style={{ fontSize: '13px', color: isFull ? '#e74c3c' : '#888' }}>
+                                                            <span style={{ fontSize: '13px', color: isFull ? '#e74c3c' : '#727271' }}>
                                                                 {isFull ? 'Kontenjan Dolu' : `Maks. ${ev.maxParticipants}`}
                                                             </span>
                                                             {ev.maxParticipants && (
                                                                 <div style={{ marginTop: '6px', height: '4px', borderRadius: '4px', backgroundColor: '#f0f2f5', width: '120px' }}>
-                                                                    <div style={{ height: '100%', borderRadius: '4px', backgroundColor: isFull ? '#e74c3c' : '#006F79', width: Math.min(100, (ev.attendeeCount / ev.maxParticipants) * 100) + '%', transition: 'width 0.3s' }} />
+                                                                    <div style={{ height: '100%', borderRadius: '4px', backgroundColor: isFull ? '#e74c3c' : '#262F59', width: Math.min(100, (ev.attendeeCount / ev.maxParticipants) * 100) + '%', transition: 'width 0.3s' }} />
                                                                 </div>
                                                             )}
                                                         </>
@@ -387,9 +387,9 @@ export default function EventsPage() {
                                                     disabled={isFull || isOrganizer || isPast}
                                                     style={{
                                                         ...styles.attendBtn,
-                                                        backgroundColor: isPast ? '#e5e7eb' : isOrganizer ? '#f0f2f5' : isAttending ? '#fff' : isFull ? '#f0f2f5' : '#006F79',
-                                                        color: isPast ? '#9ca3af' : isOrganizer ? '#888' : isAttending ? '#006F79' : isFull ? '#bbb' : '#fff',
-                                                        border: isAttending && !isOrganizer && !isPast ? '2px solid #006F79' : '2px solid transparent',
+                                                        backgroundColor: isPast ? '#e5e7eb' : isOrganizer ? '#f0f2f5' : isAttending ? '#fff' : isFull ? '#f0f2f5' : '#262F59',
+                                                        color: isPast ? '#9ca3af' : isOrganizer ? '#727271' : isAttending ? '#262F59' : isFull ? '#bbb' : '#fff',
+                                                        border: isAttending && !isOrganizer && !isPast ? '2px solid #262F59' : '2px solid transparent',
                                                         cursor: (isFull || isOrganizer || isPast) ? 'not-allowed' : 'pointer',
                                                     }}
                                                 >
@@ -423,16 +423,16 @@ const styles = {
     feedArea: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' },
     card: { backgroundColor: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
     searchInput: { width: '100%', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', backgroundColor: '#f9fbfc' },
-    filterBtnActive: { backgroundColor: 'rgba(0,111,121,0.12)', color: '#006F79', border: 'none', padding: '7px 18px', borderRadius: '20px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' },
-    filterBtn: { backgroundColor: 'transparent', color: '#888', border: 'none', padding: '7px 18px', borderRadius: '20px', fontWeight: 600, fontSize: '13px', cursor: 'pointer' },
-    catBtnActive: { backgroundColor: '#006F79', color: '#fff', border: 'none', padding: '5px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' },
+    filterBtnActive: { backgroundColor: 'rgba(38, 47, 89,0.12)', color: '#262F59', border: 'none', padding: '7px 18px', borderRadius: '20px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' },
+    filterBtn: { backgroundColor: 'transparent', color: '#727271', border: 'none', padding: '7px 18px', borderRadius: '20px', fontWeight: 600, fontSize: '13px', cursor: 'pointer' },
+    catBtnActive: { backgroundColor: '#262F59', color: '#fff', border: 'none', padding: '5px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' },
     catBtn: { backgroundColor: '#f0f2f5', color: '#555', border: 'none', padding: '5px 14px', borderRadius: '20px', fontWeight: 600, fontSize: '12px', cursor: 'pointer' },
-    createBtn: { backgroundColor: '#006F79', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 4px 12px rgba(0,111,121,0.25)' },
+    createBtn: { backgroundColor: '#262F59', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', boxShadow: '0 4px 12px rgba(38, 47, 89,0.25)' },
     eventCard: { border: '1px solid #f0f2f5', borderRadius: '16px', overflow: 'hidden', display: 'flex', gap: '0', alignItems: 'stretch', transition: 'box-shadow 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
     eventImage: { width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#f9fbfc', display: 'block', minHeight: '180px' },
     categoryBadge: { position: 'absolute', top: '10px', left: '10px', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 },
     eventContent: { padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' },
-    eventTitle: { margin: '0 0 10px', fontSize: '17px', fontWeight: 800, color: '#1a1a2e', lineHeight: '1.3' },
+    eventTitle: { margin: '0 0 10px', fontSize: '17px', fontWeight: 800, color: '#262F59', lineHeight: '1.3' },
     eventMeta: { margin: '0 0 6px', fontSize: '13px', color: '#666', display: 'flex', alignItems: 'center' },
     eventAction: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #eee' },
     attendBtn: { padding: '9px 24px', borderRadius: '10px', fontWeight: 700, fontSize: '14px', transition: 'all 0.2s' },
@@ -442,10 +442,10 @@ const modalStyles = {
     overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' },
     modal: { backgroundColor: '#fff', borderRadius: '20px', padding: '32px', width: '100%', maxWidth: '560px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)', maxHeight: '90vh', overflowY: 'auto' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-    title: { margin: 0, fontSize: '20px', fontWeight: 800, color: '#1a1a2e' },
-    closeBtn: { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#888', padding: '4px 8px', borderRadius: '8px' },
+    title: { margin: 0, fontSize: '20px', fontWeight: 800, color: '#262F59' },
+    closeBtn: { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#727271', padding: '4px 8px', borderRadius: '8px' },
     field: { marginBottom: '16px' },
     label: { display: 'block', fontSize: '12px', fontWeight: 700, color: '#555', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' },
     input: { width: '100%', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' },
-    submitBtn: { width: '100%', backgroundColor: '#006F79', color: '#fff', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', marginTop: '8px', boxShadow: '0 4px 12px rgba(0,111,121,0.3)' },
+    submitBtn: { width: '100%', backgroundColor: '#262F59', color: '#fff', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 700, fontSize: '15px', cursor: 'pointer', marginTop: '8px', boxShadow: '0 4px 12px rgba(38, 47, 89,0.3)' },
 };

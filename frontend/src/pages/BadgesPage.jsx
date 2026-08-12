@@ -22,9 +22,9 @@ export default function BadgesPage() {
 
     // Mock data for badges
     const badges = [
-        { id: 1, name: 'İlk Adım', icon: 'feather-award', color: '#006F79', glow: 'rgba(0,111,121,0.4)', desc: 'MTÜ Dijital Kampüs\'e katıldın.', unlocked: true, points: 50 },
+        { id: 1, name: 'İlk Adım', icon: 'feather-award', color: '#262F59', glow: 'rgba(38, 47, 89,0.4)', desc: 'MTÜ Dijital Kampüs\'e katıldın.', unlocked: true, points: 50 },
         { id: 2, name: 'Sosyal Kelebek', icon: 'feather-heart', color: '#e74c3c', glow: 'rgba(231,76,60,0.4)', desc: 'Gönderilerin 50 beğeni aldı.', unlocked: true, points: 200 },
-        { id: 3, name: 'Akademik Paylaşımcı', icon: 'feather-book', color: '#D6A327', glow: 'rgba(214,163,39,0.4)', desc: 'Ders notu paylaştın.', unlocked: false, progress: 0, total: 1, points: 300 },
+        { id: 3, name: 'Akademik Paylaşımcı', icon: 'feather-book', color: '#B99C71', glow: 'rgba(185, 156, 113,0.4)', desc: 'Ders notu paylaştın.', unlocked: false, progress: 0, total: 1, points: 300 },
         { id: 4, name: 'Etkinlik Rehberi', icon: 'feather-map-pin', color: '#27ae60', glow: 'rgba(39,174,96,0.4)', desc: '3 farklı etkinliğe katıldın.', unlocked: false, progress: 1, total: 3, points: 400 },
         { id: 5, name: 'Popüler Öğrenci', icon: 'feather-users', color: '#8e44ad', glow: 'rgba(142,68,173,0.4)', desc: '100 takipçiye ulaştın.', unlocked: false, progress: 45, total: 100, points: 500 },
         { id: 6, name: 'Yardımsever', icon: 'feather-thumbs-up', color: '#f39c12', glow: 'rgba(243,156,18,0.4)', desc: 'Başkalarının gönderilerine 100 beğeni bıraktın.', unlocked: true, points: 300 },
@@ -41,9 +41,9 @@ export default function BadgesPage() {
             <style>
                 {`
                 @keyframes pulseGlow {
-                    0% { box-shadow: 0 0 0 0 rgba(0, 111, 121, 0.4); }
-                    70% { box-shadow: 0 0 0 10px rgba(0, 111, 121, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(0, 111, 121, 0); }
+                    0% { box-shadow: 0 0 0 0 rgba(38, 47, 89, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(38, 47, 89, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(38, 47, 89, 0); }
                 }
                 .badge-card {
                     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -58,7 +58,7 @@ export default function BadgesPage() {
                     transition: all 0.2s;
                 }
                 .tab-btn:hover {
-                    background-color: rgba(0,111,121,0.05);
+                    background-color: rgba(38, 47, 89,0.05);
                 }
                 @media (max-width: 992px) {
                     .feed-area { padding: 0 !important; }
@@ -110,10 +110,10 @@ export default function BadgesPage() {
                     {/* Header & Tabs */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
                         <div>
-                            <h3 style={{ margin: 0, color: '#1a1a2e', fontSize: '20px', fontWeight: 800 }}>
-                                <i className="feather-award" style={{ marginRight: '8px', color: '#006F79' }}></i>Rozet Koleksiyonu
+                            <h3 style={{ margin: 0, color: '#262F59', fontSize: '20px', fontWeight: 800 }}>
+                                <i className="feather-award" style={{ marginRight: '8px', color: '#262F59' }}></i>Rozet Koleksiyonu
                             </h3>
-                            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#888' }}>
+                            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#727271' }}>
                                 {userStats.unlockedCount} / {userStats.totalBadges} rozet açıldı
                             </p>
                         </div>
@@ -145,7 +145,7 @@ export default function BadgesPage() {
                                     )}
                                 </div>
                                 
-                                <h4 style={{ margin: '16px 0 6px', fontSize: '15px', fontWeight: 700, color: b.unlocked ? '#1a1a2e' : '#888' }}>{b.name}</h4>
+                                <h4 style={{ margin: '16px 0 6px', fontSize: '15px', fontWeight: 700, color: b.unlocked ? '#262F59' : '#727271' }}>{b.name}</h4>
                                 <p style={{ fontSize: '12px', color: '#777', margin: 0, textAlign: 'center', lineHeight: '1.4', flex: 1 }}>{b.desc}</p>
                                 
                                 {/* Locked Progress Indicator */}
@@ -176,14 +176,14 @@ const styles = {
     feedArea: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '24px' },
     
     heroBanner: { 
-        background: 'linear-gradient(135deg, #006F79 0%, #004F56 100%)', 
+        background: 'linear-gradient(135deg, #262F59 0%, #151A33 100%)', 
         borderRadius: '20px', 
         padding: '32px 40px', 
         color: '#fff', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        boxShadow: '0 10px 30px rgba(0,111,121,0.2)',
+        boxShadow: '0 10px 30px rgba(38, 47, 89,0.2)',
         position: 'relative',
         overflow: 'hidden'
     },
@@ -198,8 +198,8 @@ const styles = {
     
     mainCard: { backgroundColor: '#fff', borderRadius: '20px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' },
     
-    activeTab: { backgroundColor: '#fff', color: '#006F79', border: 'none', padding: '8px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
-    inactiveTab: { backgroundColor: 'transparent', color: '#888', border: 'none', padding: '8px 20px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', cursor: 'pointer' },
+    activeTab: { backgroundColor: '#fff', color: '#262F59', border: 'none', padding: '8px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
+    inactiveTab: { backgroundColor: 'transparent', color: '#727271', border: 'none', padding: '8px 20px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', cursor: 'pointer' },
     
     badgesGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' },
     badgeCard: { 

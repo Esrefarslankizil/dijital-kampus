@@ -126,4 +126,27 @@ public class MessagesController : ControllerBase
 
         return Ok(new { ConversationId = newConversation.Id });
     }
+
+    // Mesajları okundu olarak işaretler
+    [HttpPut("{conversationId}/read")]
+    public async Task<IActionResult> MarkAsRead(int conversationId)
+    {
+        int userId = GetCurrentUserId();
+        if (userId <= 0) return Unauthorized();
+
+        var unreadMessages = await _context.Messages
+            .Where(m => m.ConversationId == conversationId && m.SenderId != userId && !m.IsRead)
+            .ToListAsync();
+
+        if (unreadMessages.Any())
+        {
+            foreach (var msg in unreadMessages)
+            {
+                msg.IsRead = true;
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok();
+    }
 }

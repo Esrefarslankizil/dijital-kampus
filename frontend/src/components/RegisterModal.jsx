@@ -158,7 +158,7 @@ function RegisterModal({ isOpen, onClose }) {
                                         type="submit" 
                                         className="form-control text-center modern-btn w-100 border-0"
                                         disabled={loading}
-                                        style={{ backgroundColor: '#006F79', color: 'white', fontWeight: 'bold' }}
+                                        style={{ backgroundColor: '#262F59', color: 'white', fontWeight: 'bold' }}
                                     >
                                         {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
                                     </button>

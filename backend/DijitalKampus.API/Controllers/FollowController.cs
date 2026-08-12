@@ -40,6 +40,19 @@ public class FollowController : ControllerBase
 
         var newFollow = new UserFollow { FollowerId = followerId, FollowedId = followedId };
         _context.UserFollows.Add(newFollow);
+        
+        var followerUser = await _context.Users.FindAsync(followerId);
+        var followerName = (followerUser?.FirstName != null && followerUser?.LastName != null) 
+                           ? $"{followerUser.FirstName} {followerUser.LastName}" 
+                           : followerUser?.UserName ?? "Biri";
+
+        var notification = new Notification
+        {
+            UserId = followedId,
+            Content = $"{followerName} seni takip etmeye başladı."
+        };
+        _context.Notifications.Add(notification);
+
         await _context.SaveChangesAsync();
 
         return Ok(new { message = "Kullanıcı başarıyla takip edildi." });

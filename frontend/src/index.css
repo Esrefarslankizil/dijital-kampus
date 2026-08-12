@@ -52,9 +52,9 @@
 
 /* Malatya Turgut Özal University Corporate Colors Override */
 :root {
-  --mtu-primary: #006F79;
+  --mtu-primary: #262F59;
   --mtu-primary-hover: #005860;
-  --mtu-secondary: #D6A327;
+  --mtu-secondary: #B99C71;
   --mtu-secondary-hover: #C5A059;
 }
 

@@ -15,8 +15,8 @@ public class GroupsController : ControllerBase
     {
         _context = context;
     }
-
-    // GET: api/groups?category=Sosyal&search=yazilim
+ 
+    // GET: api/groups?category=Sosyal&search=yazilim      
     [HttpGet]
     public async Task<IActionResult> GetGroups([FromQuery] string? category, [FromQuery] string? search)
     {
@@ -70,19 +70,34 @@ public class GroupsController : ControllerBase
 
     // POST: api/groups
     [HttpPost]
-    public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> CreateGroup([FromForm] CreateGroupFormRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return BadRequest(new { message = "Grup adi bos olamaz." });
+
+        string? imagePath = null;
+        if (request.Image != null && request.Image.Length > 0)
+        {
+            var env = HttpContext.RequestServices.GetService<IWebHostEnvironment>();
+            var uploadsDir = Path.Combine(env?.WebRootPath ?? "wwwroot", "uploads", "groups");
+            Directory.CreateDirectory(uploadsDir);
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(request.Image.FileName)}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+                await request.Image.CopyToAsync(stream);
+            imagePath = $"/uploads/groups/{fileName}";
+        }
 
         var group = new Group
         {
             Name = request.Name,
             Description = request.Description,
             Category = request.Category ?? "Sosyal",
-            ImageUrl = request.ImageUrl,
+            ImageUrl = imagePath,
             CreatorId = request.CreatorId > 0 ? request.CreatorId : 1,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsApproved = true // Otomatik onay
         };
 
         _context.Groups.Add(group);
@@ -153,6 +168,15 @@ public class CreateGroupRequest
     public string? Description { get; set; }
     public string? Category { get; set; }
     public string? ImageUrl { get; set; }
+}
+
+public class CreateGroupFormRequest
+{
+    public int CreatorId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Category { get; set; }
+    public IFormFile? Image { get; set; }
 }
 
 public class GroupActionRequest

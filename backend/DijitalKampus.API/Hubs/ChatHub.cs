@@ -85,20 +85,33 @@ public class ChatHub : Hub
             .ToListAsync();
 
         var senderUser = await _context.Users.FindAsync(senderId);
-        string senderEmail = senderUser?.Email ?? "";
+        string senderName = senderUser != null 
+            ? (!string.IsNullOrWhiteSpace(senderUser.FirstName) ? $"{senderUser.FirstName} {senderUser.LastName}" : senderUser.UserName) 
+            : "Biri";
 
         foreach (var userId in otherParticipants)
         {
+            if (userId != senderId)
+            {
+                var notification = new Notification
+                {
+                    UserId = userId,
+                    Content = $"{senderName} sana bir mesaj gönderdi."
+                };
+                _context.Notifications.Add(notification);
+            }
+
             // Mesajı herkese (kendisi dahil) ilet ki UI güncellensin
             await Clients.Group($"user_{userId}").SendAsync("ReceiveMessage", new 
             {
                 Id = message.Id,
                 ConversationId = message.ConversationId,
                 SenderId = message.SenderId,
-                SenderEmail = senderEmail,
+                SenderEmail = senderUser?.Email ?? "",
                 Content = message.Content,
                 SentAt = message.SentAt
             });
         }
+        await _context.SaveChangesAsync();
     }
 }
