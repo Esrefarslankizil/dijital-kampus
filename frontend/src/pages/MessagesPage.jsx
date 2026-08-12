@@ -168,7 +168,7 @@ export default function MessagesPage() {
                                         onClick={() => handleSelectConversation(conv)}
                                     >
                                         <div style={styles.avatarWrap}>
-                                            <img src={`https://ui-avatars.com/api/?name=${conv.title || 'U'}&background=random`} alt="user" style={styles.avatar} />
+                                            <img src={conv.avatarUrl ? (conv.avatarUrl.startsWith('http') ? conv.avatarUrl : `${BACKEND_URL}${conv.avatarUrl}`) : "/images/default-avatar.svg"} alt="user" style={styles.avatar} />
                                             {conv.unreadCount > 0 && <span style={styles.unreadBadge}>{conv.unreadCount}</span>}
                                         </div>
                                         <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -188,7 +188,7 @@ export default function MessagesPage() {
                                 {/* Chat Header */}
                                 <div style={styles.chatHeader}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <img src={`https://ui-avatars.com/api/?name=${activeConversation.title || 'U'}&background=random`} alt="user" style={styles.headerAvatar} />
+                                        <img src={activeConversation.avatarUrl ? (activeConversation.avatarUrl.startsWith('http') ? activeConversation.avatarUrl : `${BACKEND_URL}${activeConversation.avatarUrl}`) : "/images/default-avatar.svg"} alt="user" style={styles.headerAvatar} />
                                         <h4 style={{ margin: 0, fontWeight: 700, fontSize: '18px' }}>{activeConversation.title}</h4>
                                     </div>
                                     <div style={{ display: 'flex', gap: '16px', color: '#727271' }}>

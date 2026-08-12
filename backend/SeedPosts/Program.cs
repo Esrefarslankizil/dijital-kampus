@@ -4,11 +4,9 @@ using DijitalKampus.API.Models;
 
 // Proje root'unu kullan
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = "Server=localhost;Port=3306;Database=DijitalKampus;User=root;Password=Sifre123;";
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    ));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 var app = builder.Build();
 
@@ -21,13 +19,13 @@ var users = await db.Users
     .Select(u => new { u.Id, u.FirstName, u.LastName, u.Email, u.Role })
     .ToListAsync();
 
-if (users.Count == 0)
+if (users.Count() == 0)
 {
     Console.WriteLine("Hiç onaylı kullanıcı bulunamadı! Önce kullanıcı ekleyin.");
     return;
 }
 
-Console.WriteLine($"Toplam {users.Count} kullanıcı bulundu. Gönderiler oluşturuluyor...");
+Console.WriteLine($"Toplam {users.Count()} kullanıcı bulundu. Gönderiler oluşturuluyor...");
 
 var postContents = new[]
 {
@@ -101,14 +99,14 @@ int likeCount = 0;
 foreach (var postId in allPosts)
 {
     // Her gönderiye rastgele 0-8 kullanıcı beğeniyor
-    int likers = rng.Next(0, Math.Min(9, allUsers2.Count));
+    int likers = rng.Next(0, Math.Min(9, allUsers2.Count()));
     var selectedUsers = allUsers2.OrderBy(_ => rng.Next()).Take(likers);
     foreach (var uid in selectedUsers)
     {
         bool exists = await db.PostLikes.AnyAsync(l => l.PostId == postId && l.UserId == uid);
         if (!exists)
         {
-            db.PostLikes.Add(new PostLike { PostId = postId, UserId = uid, CreatedAt = DateTime.UtcNow });
+            db.PostLikes.Add(new PostLike { PostId = postId, UserId = uid });
             likeCount++;
         }
     }

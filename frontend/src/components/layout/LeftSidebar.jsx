@@ -140,33 +140,14 @@ const currentUserId = getUserIdFromToken();
                 <div style={{ ...styles.profileCard, transition: 'transform 0.2s', cursor: 'pointer' }}>
                     <div style={styles.profileBanner}></div>
                     <div style={styles.profileAvatarWrap}>
-                        {avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' ? (
-                            <img
-                                src={avatarUrl}
-                                alt="profil"
-                                style={styles.profileAvatar}
-                                onError={(e) => {
-                                    console.error('SIDEBAR AVATAR HATA - src:', avatarUrl);
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextSibling && (e.currentTarget.nextSibling.style.display = 'flex');
-                                }}
-                            />
-                        ) : null}
-                        <div style={{
-                            ...styles.profileAvatar,
-                            display: avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' ? 'none' : 'flex',
-                            backgroundColor: '#e8ecf0',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexDirection: 'column',
-                            overflow: 'hidden',
-                            position: 'relative'
-                        }}>
-                            {/* Baş */}
-                            <div style={{ width: '40%', height: '40%', borderRadius: '50%', backgroundColor: '#9ba5b0', marginTop: '10%' }} />
-                            {/* Gövde */}
-                            <div style={{ width: '70%', height: '45%', borderRadius: '50% 50% 0 0', backgroundColor: '#9ba5b0', marginTop: '4%' }} />
-                        </div>
+                        <img
+                            src={avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' ? (avatarUrl.startsWith('http') ? avatarUrl : `http://localhost:5181${avatarUrl}`) : "/images/default-avatar.svg"}
+                            alt="profil"
+                            style={styles.profileAvatar}
+                            onError={(e) => {
+                                e.currentTarget.src = '/images/default-avatar.svg';
+                            }}
+                        />
                     </div>
                     <div style={{ textAlign: 'center', padding: '8px 16px 16px' }}>
                         <p style={styles.profileName}>{displayName}</p>

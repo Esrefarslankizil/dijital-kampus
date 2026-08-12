@@ -188,7 +188,7 @@ function GroupChatModal({ group, onClose, currentUserId }) {
                                 <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
                                     <div style={{ display: 'flex', gap: 8, maxWidth: '80%', flexDirection: isMe ? 'row-reverse' : 'row' }}>
                                         {!isMe && (
-                                            <img src={m.senderAvatar ? (m.senderAvatar.startsWith('http') ? m.senderAvatar : `http://localhost:5181${m.senderAvatar}`) : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'} 
+                                            <img src={m.senderAvatar ? (m.senderAvatar.startsWith('http') ? m.senderAvatar : `http://localhost:5181${m.senderAvatar}`) : '/images/default-avatar.svg'} 
                                                  style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', marginTop: '18px' }} alt="" />
                                         )}
                                         <div>

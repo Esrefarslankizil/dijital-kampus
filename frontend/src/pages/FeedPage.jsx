@@ -126,7 +126,7 @@ const StoryCarousel = ({ stories, onStoryUpload, currentUserId, onDeleteStory, o
                     <div 
                         style={{ 
                             ...styles.storyCard, 
-                            backgroundImage: `url(${localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"})`,
+                            backgroundImage: `url(${localStorage.getItem('avatarUrl') && localStorage.getItem('avatarUrl') !== 'null' ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/default-avatar.svg"})`,
                             border: '2px solid #262F59'
                         }} 
                         onClick={() => setShowCreateModal(true)}
@@ -203,7 +203,7 @@ const CreatePostBox = ({ onShare, isPosting, error, success }) => {
                 <i className="feather-edit-3" style={{ marginRight: '8px' }}></i>Gönderi Oluştur
             </h4>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-                <img src={localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png"} alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #262F59' }} />
+                <img src={localStorage.getItem('avatarUrl') && localStorage.getItem('avatarUrl') !== 'null' ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/default-avatar.svg"} alt="me" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #262F59' }} />
                 <div style={{ flex: 1 }}>
                     <textarea
                         value={text}
@@ -306,7 +306,7 @@ export default function FeedPage() {
                         userId: p.userId,
                         user: p.author || 'Kullanıcı',
                         authorId: p.authorId || p.userId, // Eşref ve senin mantığını garantiye alır
-                        avatar: p.avatarUrl ? (p.avatarUrl.startsWith('http') ? p.avatarUrl : BACKEND_URL + p.avatarUrl) : '/images/user-7.png',
+                        avatar: p.avatarUrl && p.avatarUrl !== 'null' ? (p.avatarUrl.startsWith('http') ? p.avatarUrl : BACKEND_URL + p.avatarUrl) : '/images/default-avatar.svg',
                         time: new Date(p.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }),
                         role: 'Kullanıcı',
                         content: p.content,
@@ -328,7 +328,7 @@ export default function FeedPage() {
                         id: s.id,
                         userId: s.userId,
                         name: s.userName,
-                        avatar: s.avatarUrl ? (s.avatarUrl.startsWith('http') ? s.avatarUrl : `${BACKEND_URL}${s.avatarUrl}`) : '/images/user-7.png',
+                        avatar: s.avatarUrl && s.avatarUrl !== 'null' ? (s.avatarUrl.startsWith('http') ? s.avatarUrl : `${BACKEND_URL}${s.avatarUrl}`) : '/images/default-avatar.svg',
                         bg: s.mediaPath,
                         text: s.textContent,
                         bgColor: s.backgroundColor || '#000',
@@ -368,7 +368,7 @@ export default function FeedPage() {
                 userId: currentUserId,
                 user: newPost.author || userEmail,
                 authorId: currentUserId,
-                avatar: currentUserAvatar ? (currentUserAvatar.startsWith('http') ? currentUserAvatar : BACKEND_URL + currentUserAvatar) : '/images/user-7.png',
+                avatar: currentUserAvatar && currentUserAvatar !== 'null' ? (currentUserAvatar.startsWith('http') ? currentUserAvatar : BACKEND_URL + currentUserAvatar) : '/images/default-avatar.svg',
                 time: 'Şimdi',
                 role: userRole,
                 content: text,
@@ -427,7 +427,7 @@ export default function FeedPage() {
                     id: result.story.id,
                     userId: currentUserId,
                     name: userEmail,
-                    avatar: localStorage.getItem('avatarUrl') ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/user-7.png",
+                    avatar: localStorage.getItem('avatarUrl') && localStorage.getItem('avatarUrl') !== 'null' ? (localStorage.getItem('avatarUrl').startsWith('http') ? localStorage.getItem('avatarUrl') : `${BACKEND_URL}${localStorage.getItem('avatarUrl')}`) : "/images/default-avatar.svg",
                     bg: result.story.mediaPath,
                     text: result.story.textContent,
                     bgColor: result.story.backgroundColor,

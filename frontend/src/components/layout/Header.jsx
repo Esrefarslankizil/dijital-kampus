@@ -214,7 +214,7 @@ function Header({ onOpenLogin, onOpenRegister }) {
                                                 {user.avatarUrl && user.avatarUrl !== 'null' && user.avatarUrl !== 'undefined' ? (
                                                     <img src={`http://localhost:5181${user.avatarUrl}`} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'block' }} />
                                                 ) : (
-                                                    <img src={`https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'block', backgroundColor: '#f0f2f5' }} />
+                                                    <img src="/images/default-avatar.svg" alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'block', backgroundColor: '#f0f2f5' }} />
                                                 )}
                                                 <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     <strong style={{ fontSize: '13.5px', color: '#262F59', marginBottom: '2px', lineHeight: 1.2 }}>{displayName}</strong>

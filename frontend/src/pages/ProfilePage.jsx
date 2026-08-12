@@ -11,25 +11,16 @@ import toast from 'react-hot-toast'; // Senin bildirimlerin geri geldi!
 const API_BASE = 'http://localhost:5181';
 
 const toAbsoluteUrl = (url) => {
-    if (!url) return null;
+    if (!url || url === 'null' || url === 'undefined') return null;
     if (url.startsWith('http')) return url;
     return API_BASE + url;
 };
 
-// Gradient avatar veya gerçek resim
+// Çöp adam ikonu (default-avatar.svg) veya gerçek resim
 const AvatarCircle = ({ url, name, size = 120, border = '4px solid #fff', style = {} }) => {
-    const src = toAbsoluteUrl(url);
-    const initial = (name || '?').charAt(0).toUpperCase();
-    const base = { width: size, height: size, borderRadius: '50%', border, display: 'block', flexShrink: 0, ...style };
-    if (src) return <img src={src} alt="Avatar" style={{ objectFit: 'cover', ...base }} />;
-    return (
-        <div style={{
-            ...base,
-            background: 'linear-gradient(135deg, #262F59, #12A7CD)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 800, fontSize: size * 0.38,
-        }}>{initial}</div>
-    );
+    const src = toAbsoluteUrl(url) || '/images/default-avatar.svg';
+    const base = { width: size, height: size, borderRadius: '50%', border, display: 'block', flexShrink: 0, ...style, backgroundColor: '#f0f2f5' };
+    return <img src={src} alt="Avatar" style={{ objectFit: 'cover', ...base }} />;
 };
 
 export default function ProfilePage() {
