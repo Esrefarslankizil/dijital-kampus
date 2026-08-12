@@ -250,44 +250,58 @@ namespace DijitalKampus.API.Controllers
         }
 
         // POST: api/posts  — multipart/form-data ile fotoğraf + etiket desteği
+        // HOCAYA ANLATIRKEN: "Gönderi oluştururken yazıyı ve fotoğrafı tek seferde (multipart/form-data) olarak alıyorum."
         [HttpPost]
         public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest request)
         {
+            // 1. ADIM: BOŞ GÖNDERİ KONTROLÜ
+            // Kullanıcı boş bir şeye basıp gönderemez.
             if (string.IsNullOrWhiteSpace(request.Content))
                 return BadRequest(new { message = "Gönderi içeriği boş olamaz." });
 
+            // 2. ADIM: KULLANICIYI TESPİT ETME
+            // Token üzerinden "bu gönderiyi kim atıyor?" bilgisini (ID) alıyoruz.
             var userId = request.UserId > 0 ? request.UserId : GetCurrentUserId();
             if (userId <= 0) userId = 1;
 
+            // 3. ADIM: YENİ GÖNDERİ MODELİNİ OLUŞTURMA
             var newPost = new Post
             {
                 UserId = userId,
                 Content = request.Content,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow // Şu anki saat
             };
 
+            // Gönderiyi veritabanına eklemesi için EF Core'a veriyoruz.
             _context.Posts.Add(newPost);
 
             try
             {
+                // Değişikliği kaydediyoruz. Bu sayede veritabanı bize yeni gönderinin ID'sini üretiyor (newPost.Id).
                 await _context.SaveChangesAsync();
 
-                // Fotoğraf varsa kaydet (Senin mantığın)
+                // 4. ADIM: FOTOĞRAF YÜKLEME (Fiziksel Dosya Kaydı)
+                // Eğer frontend bize bir resim dosyası göndermişse...
                 if (request.Image != null && request.Image.Length > 0)
                 {
+                    // Güvenlik: Sadece bu formatlara izin ver (Hacklenmeyi önlemek için).
                     var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
                     if (allowedTypes.Contains(request.Image.ContentType.ToLower()))
                     {
+                        // Projemizin "wwwroot/uploads/posts" klasörünün yolunu buluyoruz.
                         var uploadsDir = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "posts");
-                        Directory.CreateDirectory(uploadsDir);
+                        Directory.CreateDirectory(uploadsDir); // Klasör yoksa oluştur
 
+                        // Dosyanın uzantısını alıp, çakışma olmasın diye benzersiz bir isim (Ticks) üretiyoruz.
                         var ext = Path.GetExtension(request.Image.FileName);
                         var fileName = $"post_{newPost.Id}_{DateTime.UtcNow.Ticks}{ext}";
                         var filePath = Path.Combine(uploadsDir, fileName);
 
+                        // Dosyayı sunucumuzun içine (diske) fiziksel olarak kopyalıyoruz.
                         using (var stream = new FileStream(filePath, FileMode.Create))
                             await request.Image.CopyToAsync(stream);
 
+                        // Dosya kaydedildikten sonra, dışarıdan erişilebilecek URL'ini (Linkini) PostMedias tablosuna ekliyoruz.
                         var mediaUrl = $"/uploads/posts/{fileName}";
                         _context.PostMedias.Add(new PostMedia { PostId = newPost.Id, Url = mediaUrl });
                         await _context.SaveChangesAsync();
